@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -18,14 +18,13 @@
 # limitations under the License.
 #
 
-add_library(OTBTestKernel otbTestHelper.cxx)
+add_library(OTBTestKernel otbTestHelper.cxx otbTestTools.cxx)
 target_link_libraries(OTBTestKernel 
   ${OTBGdalAdapters_LIBRARIES}
   ${OTBImageIO_LIBRARIES}
   ${OTBImageBase_LIBRARIES}
   ${OTBCommon_LIBRARIES}
   ${OTBGDAL_LIBRARIES}
-  ${OTBOSSIMAdapters_LIBRARIES}
   ${OTBImageManipulation_LIBRARIES}
   ${OTBMPIConfig_LIBRARIES}
   )

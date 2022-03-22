@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -31,6 +31,9 @@ otbGDALReadPxlComplex.cxx
 otbGDALImageIOTestCanRead.cxx
 otbMultiDatasetReadingInfo.cxx
 otbOGRVectorDataIOCanRead.cxx
+otbDEMHandlerTest.cxx
+otbGDALRPCTransformerTest.cxx
+otbGDALRPCTransformerTest2.cxx
 )
 
 add_executable(otbIOGDALTestDriver ${OTBIOGDALTests})
@@ -249,3 +252,373 @@ foreach(INPUTFILE_PIXELTYPE ${INPUTFILE_PIXELTYPES_LIST})
     1 5 10 2) #old file hdr sans extensions
 
 endforeach()
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_NoSRTM_NoGeoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  no
+  40
+  8.687917
+  44.237917
+  0
+  40
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_NoSRTM_Geoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_BadSRTM_Geoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/poupeesTIF/
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  0
+  383.580313671
+  0.001
+  no
+  )
+set_property(TEST uaTvDEMHandler_AboveEllipsoid_BadSRTM_Geoid PROPERTY WILL_FAIL 1)
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_NoSRTM_NoGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  no
+  40
+  8.434583
+  44.647083
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_NoSRTM_Geoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  0
+  44.067113
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_Geoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  0
+  383.580313671
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_NoGeoid_NoSRTMCoverage COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  20
+  10. # Point not covered
+  10. # Point not covered
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_NoGeoid_NoSRTMCoverage COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  20
+  10. # Point not covered
+  10. # Point not covered
+  0
+  20
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_NoGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  40
+  8.434583
+  44.647083
+  1
+  339.513
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_NoGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  40
+  8.434583
+  44.647083
+  0
+  339.513
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_Geoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.687917
+  44.237917
+  0
+  45.7464
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_BadGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/poupees.jpg
+  40
+  8.434583
+  44.647083
+  0
+  339.513
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_BadGeoid_2 COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/acqui-params.txt
+  40
+  8.434583
+  44.647083
+  0
+  339.513
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_NoGeoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  40
+  8.687917
+  44.237917
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_BDALTI_TIF_NoGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  LARGEINPUT{BD_ALTI/}
+  no
+  800
+  7.283262
+  48.598675
+  0
+  869
+  1
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_Geoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.687917
+  44.237917
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_NoSRTM_NoGeoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  no
+  40
+  8.687917
+  44.237917
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_Geoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  1
+  339.513
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_NoSRTM_NoGeoid COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  no
+  40
+  8.434583
+  44.647083
+  0
+  40
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveMSL_SRTM_Geoid_NoSRTMCoverage COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  20
+  10. # Point not covered
+  10. # Point not covered
+  1
+  0
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_Geoid_NoSRTMCoverage COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  20
+  10. # Point not covered
+  10. # Point not covered
+  0
+  21.569 # Geoid offset
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_AboveEllipsoid_SRTM_NoGeoid_NoData COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  ${INPUTDATA}/DEM/srtm_directory/
+  no
+  40
+  8.687917
+  44.237917
+  0
+  40
+  0.001
+  no
+  )
+
+otb_add_test(NAME uaTvDEMHandler_ClearElevationParameters COMMAND otbIOGDALTestDriver
+  otbDEMHandlerTest
+  no
+  ${INPUTDATA}/DEM/egm96.grd
+  40
+  8.434583
+  44.647083
+  1
+  0
+  0.001
+  yes
+  )
+
+otb_add_test(NAME TuGDALRPCTransformerTest
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest
+  ${INPUTDATA}/TuGDALRPCTransformerTest_DEM.tif
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_ikonos_geom
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  ${INPUTDATA}/ikonos/ikonos-1.geom # Geom
+  ${INPUTDATA}/ikonos/ikonos-1.gcp2 # GCP
+  0.04 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_ikonos_product
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  LARGEINPUT{IKONOS/BLOSSEVILLE/po_2619900_blu_0000000.tif} # Product
+  ${INPUTDATA}/ikonos/ikonos-1.gcp2 # GCP
+  0.04 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_quickbird
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  ${INPUTDATA}/QB/qb-1.geom # Geom
+  ${INPUTDATA}/QB/qb-1.gcp2 # GCP
+  0.024 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_spot6
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  ${INPUTDATA}/spot6/spot6-1.geom # Geom
+  ${INPUTDATA}/spot6/spot6-1.gcp2 # GCP
+  0.06 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_worldview2
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  ${INPUTDATA}/wv2/wv2-1.geom # Geom
+  ${INPUTDATA}/wv2/wv2-1.gcp2 # GCP
+  0.0185 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_pl_hnord_geom
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  ${INPUTDATA}/pleiades/pleiades-1.geom # Geom
+  ${INPUTDATA}/pleiades/pleiades-1.gcp2 # GCP
+  0.02 # GeoTol
+  0.1 # ImgTol
+  )
+
+otb_add_test(NAME ioTvGDALRPCTransformerTest_pl_hnord_product
+  COMMAND otbIOGDALTestDriver
+  otbGDALRPCTransformerTest2
+  LARGEINPUT{PLEIADES/TLSE_JP2_DIMAPv2_PRIMARY_PMS_lossless_12bits/IMGPHR_201222215194743808/IMG_PHR1A_PMS_201201151100183_SEN_IPU_20120222_0901-001_R1C1.JP2} # Product
+  ${INPUTDATA}/pleiades/pleiades-1.gcp2 # GCP
+  0.02 # GeoTol
+  0.1 # ImgTol
+  )
+

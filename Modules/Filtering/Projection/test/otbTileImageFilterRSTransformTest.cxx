@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -23,7 +23,9 @@
 #include "otbImageFileReader.h"
 #include "otbGeographicalDistance.h"
 #include "otbGenericRSTransform.h"
+#include "otbDEMHandler.h"
 #include <iomanip>
+#include "otbDEMHandler.h"
 
 typedef otb::Image<unsigned int>             ImageType;
 typedef otb::TileImageFilter<ImageType>      TileImageFilterType;
@@ -49,7 +51,7 @@ int otbTileImageFilterRSTransformTest(int argc, char* argv[])
   TileImageFilterType::Pointer tileFilter = TileImageFilterType::New();
   tileFilter->SetLayout(layout);
 
-  otb::DEMHandler::Instance()->SetDefaultHeightAboveEllipsoid(0);
+  otb::DEMHandler::GetInstance().SetDefaultHeightAboveEllipsoid(0);
 
   for (unsigned int i = 0; i < numberOfImages; ++i)
   {
@@ -73,7 +75,7 @@ int otbTileImageFilterRSTransformTest(int argc, char* argv[])
 
     // Set-up transform
     RSTransformType::Pointer rsTransform = RSTransformType::New();
-    rsTransform->SetInputKeywordList(reader->GetOutput()->GetImageKeywordlist());
+    rsTransform->SetInputImageMetadata(&(reader->GetOutput()->GetImageMetadata()));
     rsTransform->InstantiateTransform();
     transforms.push_back(rsTransform);
 
@@ -84,7 +86,7 @@ int otbTileImageFilterRSTransformTest(int argc, char* argv[])
 
   // Build RS transform for tiled image
   RSTransformType::Pointer mosaicRsTransform = RSTransformType::New();
-  mosaicRsTransform->SetInputKeywordList(tileFilter->GetOutput()->GetImageKeywordlist());
+  mosaicRsTransform->SetInputImageMetadata(&(tileFilter->GetOutput()->GetImageMetadata()));
   mosaicRsTransform->InstantiateTransform();
 
   // Check that individual RSTransform gives the same result as tiled

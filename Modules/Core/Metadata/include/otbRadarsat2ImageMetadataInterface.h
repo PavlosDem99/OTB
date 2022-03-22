@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -51,52 +51,20 @@ public:
   typedef Superclass::MetaDataDictionaryType   MetaDataDictionaryType;
   typedef Superclass::VectorType               VectorType;
   typedef Superclass::VariableLengthVectorType VariableLengthVectorType;
-  typedef Superclass::ImageKeywordlistType     ImageKeywordlistType;
   typedef Superclass::LookupDataPointerType    LookupDataPointerType;
   //  typedef Radarsat2CalibrationLookupData::Pointer          LookupDataPointerType;
 
-  /*ImageMetadataInterfaceBase pure virtuals */
-  /** Get the imaging production day from the ossim metadata : DATASET_PRODUCTION_DATE metadata variable
-   * \deprecated
-   */
-  int GetProductionDay() const override;
-
-  /** Get the imaging production month from the ossim metadata : DATASET_PRODUCTION_DATE metadata variable
-   * \deprecated
-   */
-  int GetProductionMonth() const override;
-
-  /** Get the imaging production year from the ossim metadata : DATASET_PRODUCTION_DATE metadata variable
-   * \deprecated
-   */
-  int GetProductionYear() const override;
-
-  /** check sensor ID */
-  bool CanRead() const override;
-
-  int GetDay() const override;
-
-  int GetMonth() const override;
-
-  int GetYear() const override;
-
-  int GetHour() const override;
-
-  int GetMinute() const override;
-
-  UIntVectorType GetDefaultDisplay() const override;
-
-  /*SarImageMetadataInterface pure virtuals rituals */
-  double GetPRF() const override;
-
-  double GetRSF() const override;
-
-  double GetRadarFrequency() const override;
-
-  double GetCenterIncidenceAngle() const override;
+  double GetCenterIncidenceAngle(const MetadataSupplierInterface&) const override;
 
   /*get lookup data for calculating backscatter */
-  void CreateCalibrationLookupData(const short type) override;
+  bool HasCalibrationLookupDataFlag(const MetadataSupplierInterface&) const override;
+  bool CreateCalibrationLookupData(SARCalib&, const ImageMetadata&, const MetadataSupplierInterface&, const bool) const override;
+
+  void ParseGdal(ImageMetadata &) override;
+
+  void ParseGeom(ImageMetadata &) override;
+
+  void Parse(ImageMetadata &) override;
 
 
 protected:
@@ -104,24 +72,11 @@ protected:
   Radarsat2ImageMetadataInterface();
 
   /* class destructor */
-  ~Radarsat2ImageMetadataInterface() override
-  {
-  }
+  ~Radarsat2ImageMetadataInterface() override = default;
 
 private:
   Radarsat2ImageMetadataInterface(const Self&) = delete;
   void operator=(const Self&) = delete;
-
-  /* Helper function to parse date and time into a std::vector<std::string>
-   * using boost::split() expect date time in yyyy-mm-ddThh:mm:ss.ms
-   * the date-time string is to be found in keywordlist with key 'key'
-   * fills argument dateFields of type std::vector<std::string> which is mutable!
-   * TODO: move this method into base class
-   */
-  void ParseDateTime(const char* key, std::vector<int>& dateFields) const;
-
-  mutable std::vector<int> m_ProductionDateFields;
-  mutable std::vector<int> m_AcquisitionDateFields;
 };
 
 

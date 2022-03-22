@@ -34,6 +34,8 @@
 %include "itkMacro.i"
 %include "itkBase.i"
 
+%include "otbImageMetadata.i"
+
 #if OTB_SWIGNUMPY
 %include "numpy.i"
 
@@ -96,7 +98,9 @@ namespace Wrapper
     ParameterType_Group,
     ParameterType_ListView,
     ParameterType_RAM,
-    ParameterType_Bool
+    ParameterType_Bool,
+    ParameterType_Field,
+    ParameterType_Band
   } ParameterType;
 
   typedef enum
@@ -134,23 +138,6 @@ namespace Wrapper
 
 } // end of namespace Wrapper
 
-class ImageKeywordlist
-{
-public:
-  typedef std::map<std::string, std::string> KeywordlistMap;
-  typedef KeywordlistMap::size_type KeywordlistMapSizeType;
-  ImageKeywordlist();
-  virtual ~ImageKeywordlist();
-  const KeywordlistMap& GetKeywordlist() const;
-  void Clear(void);
-  KeywordlistMapSizeType Empty() const;
-  KeywordlistMapSizeType GetSize(void) const;
-  const std::string& GetMetadataByKey(const std::string& key) const;
-  bool HasKey(const std::string& key) const;
-  virtual void ClearMetadataByKey(const std::string& key);
-  virtual void AddKey(const std::string& key, const std::string& value);
-  virtual void Print(std::ostream& os, itkIndent indent = 0) const;
-};
 
 class VectorDataKeywordlist
 {
@@ -160,40 +147,6 @@ public:
   // VectorDataKeywordlist(const Self& other);
   // TODO : finish wrapping
 };
-
-class OTB_GCP
-{
-public:
-  std::string m_Id;
-  std::string m_Info;
-  double m_GCPCol;
-  double m_GCPRow;
-  double m_GCPX;
-  double m_GCPY;
-  double m_GCPZ;
-  OTB_GCP();
-  ~OTB_GCP();
-  void Print(std::ostream& os) const;
-};
-
-#if SWIGPYTHON
-%extend ImageKeywordlist
-  {
-  %pythoncode
-    {
-    def __str__(self):
-      return str(self.GetKeywordlist())
-    def __len__(self):
-      return self.GetSize()
-    def __getitem__(self,key):
-      return self.GetKeywordlist()[key]
-    def __setitem__(self,key,val):
-      self.GetKeywordlist()[key] = val
-    def keys(self):
-      return self.GetKeywordlist().keys()
-    }
-  }
-#endif
 
 } // end of namespace otb
 
@@ -343,10 +296,11 @@ public:
   itk::Size<2> GetImageSize(const std::string & key, unsigned int idx = 0);
   unsigned int GetImageNbBands(const std::string & key, unsigned int idx = 0);
   std::string GetImageProjection(const std::string & key, unsigned int idx = 0);
-  otb::ImageKeywordlist GetImageKeywordlist(const std::string & key, unsigned int idx = 0);
   unsigned long PropagateRequestedRegion(const std::string & key, itk::ImageRegion<2> region, unsigned int idx = 0);
   itk::ImageRegion<2> GetImageRequestedRegion(const std::string & key, unsigned int idx = 0);
-  itkMetaDataDictionary GetImageMetaData(const std::string & key, unsigned int idx = 0);
+  otb::ImageMetadata &GetImageMetadata(const std::string& key, unsigned int idx = 0);
+  void SetImageMetadata(const otb::ImageMetadata & imd, const std::string& key, unsigned int idx = 0);
+  itkMetaDataDictionary GetMetadataDictionary(const std::string & key, unsigned int idx = 0);
   otb::Wrapper::ImagePixelType GetImageBasePixelType(const std::string & key, unsigned int idx = 0);
 
   itkProcessObject* GetProgressSource() const;
@@ -528,7 +482,7 @@ public:
     itk::Vector<SpacePrecisionType,2> spacing,
     itk::Size<2> size,
     itk::ImageRegion<2> bufferRegion,
-    itkMetaDataDictionary metadata)
+    otb::ImageMetadata metadata)
     {
     img->SetOrigin(origin);
     otb::internal::SetSignedSpacing(img, spacing);
@@ -542,7 +496,7 @@ public:
       }
     img->SetRequestedRegion(bufferRegion);
     img->SetBufferedRegion(bufferRegion);
-    img->SetMetaDataDictionary(metadata);
+    dynamic_cast<otb::ImageCommons*>(img)->SetImageMetadata(metadata);
     }
 } /* end of %extend */
 #endif /* OTB_SWIGNUMPY */
@@ -638,7 +592,9 @@ class ApplicationProxy(object):
         ParameterType_Float : 'ParameterType_Float',
         ParameterType_Choice : 'ParameterType_Choice',
         ParameterType_Group : 'ParameterType_Group',
-        ParameterType_Bool : 'ParameterType_Bool'
+        ParameterType_Bool : 'ParameterType_Bool',
+        ParameterType_Field : 'ParameterType_Field',
+        ParameterType_Band : 'ParameterType_Band'
       }.get(parameter_type, 'ParameterType_UNKNOWN')
 
     def __str__(self):
@@ -653,8 +609,7 @@ class ApplicationProxy(object):
 
     def SetParameterValue(self, paramKey, value):
       paramType = self.GetParameterType(paramKey)
-      if paramType in [ParameterType_RAM,
-                       ParameterType_String, ParameterType_InputFilename,
+      if paramType in [ParameterType_String, ParameterType_InputFilename,
                        ParameterType_OutputImage, ParameterType_OutputVectorData,
                        ParameterType_OutputFilename,
                        ParameterType_Directory, ParameterType_InputImage,
@@ -662,9 +617,9 @@ class ApplicationProxy(object):
         return self.SetParameterString(paramKey, value)
       elif paramType in [ParameterType_InputImageList, ParameterType_InputVectorDataList,
                          ParameterType_InputFilenameList, ParameterType_StringList,
-                         ParameterType_ListView]:
+                         ParameterType_ListView, ParameterType_Field, ParameterType_Band]:
         return self.SetParameterStringList(paramKey, value)
-      elif paramType in [ParameterType_Int, ParameterType_Radius]:
+      elif paramType in [ParameterType_Int, ParameterType_Radius, ParameterType_RAM]:
         return self.SetParameterInt(paramKey, value)
       elif paramType in [ParameterType_Float]:
         return self.SetParameterFloat(paramKey, value)
@@ -698,7 +653,7 @@ class ApplicationProxy(object):
         return self.GetParameterString(paramKey)
       elif paramType in [ParameterType_InputImageList, ParameterType_InputVectorDataList,
                          ParameterType_InputFilenameList, ParameterType_StringList,
-                         ParameterType_ListView]:
+                         ParameterType_ListView, ParameterType_Field, ParameterType_Band]:
         return self.GetParameterStringList(paramKey)
       elif paramType in [ParameterType_Int, ParameterType_Radius, ParameterType_RAM]:
         return self.GetParameterInt(paramKey)
@@ -932,7 +887,7 @@ class ApplicationProxy(object):
       output["spacing"] = self.GetImageSpacing(paramKey)
       output["size"] = self.GetImageSize(paramKey)
       output["region"] = self.GetImageRequestedRegion(paramKey)
-      output["metadata"] = self.GetImageMetaData(paramKey)
+      output["metadata"] = self.GetImageMetadata(paramKey)
       return output
 
     }
@@ -1023,11 +978,11 @@ public:
     otb::Wrapper::MetaDataHelper::SetDouble(* $self,key,val);
     }
 
-  otb::OTB_GCP GetGCP(const std::string &key)
+  otb::GCP GetGCP(const std::string &key)
     {
     return otb::Wrapper::MetaDataHelper::GetGCP(* $self,key);
     }
-  void SetGCP(const std::string &key, const otb::OTB_GCP &val)
+  void SetGCP(const std::string &key, const otb::GCP &val)
     {
     otb::Wrapper::MetaDataHelper::SetGCP(* $self,key,val);
     }
@@ -1039,15 +994,6 @@ public:
   void SetVector(const std::string &key, const std::vector<double> &val)
     {
     otb::Wrapper::MetaDataHelper::SetVector(* $self,key,val);
-    }
-
-  otb::ImageKeywordlist GetImageKWL(const std::string &key)
-    {
-    return otb::Wrapper::MetaDataHelper::GetImageKWL(* $self,key);
-    }
-  void SetImageKWL(const std::string &key, const otb::ImageKeywordlist &val)
-    {
-    otb::Wrapper::MetaDataHelper::SetImageKWL(* $self,key,val);
     }
 
   otb::VectorDataKeywordlist GetVectorDataKWL(const std::string &key)
@@ -1078,9 +1024,8 @@ public:
       2 : GetDouble,
       3 : GetGCP,
       4 : GetVector,
-      5 : GetImageKWL,
-      6 : GetVectorDataKWL,
-      7 : GetBoolVector,
+      5 : GetVectorDataKWL,
+      6 : GetBoolVector,
       }
 
     SetterMap = {
@@ -1089,9 +1034,8 @@ public:
       2 : SetDouble,
       3 : SetGCP,
       4 : SetVector,
-      5 : SetImageKWL,
-      6 : SetVectorDataKWL,
-      7 : SetBoolVector,
+      5 : SetVectorDataKWL,
+      6 : SetBoolVector,
       }
 
     def __str__(self):

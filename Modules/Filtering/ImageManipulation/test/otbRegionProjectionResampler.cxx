@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -43,7 +43,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkTranslationTransform.h"
 
-#include "otbInverseSensorModel.h"
+#include "otbRPCInverseTransform.h"
 #include "otbCompositeTransform.h"
 
 int otbRegionProjectionResampler(int argc, char* argv[])
@@ -59,9 +59,9 @@ int otbRegionProjectionResampler(int argc, char* argv[])
 
   typedef otb::Image<unsigned char, 2> CharImageType;
   typedef otb::Image<double, 2>        ImageType;
-  typedef otb::ImageFileReader<ImageType> ReaderType;
-  typedef otb::ImageFileWriter<ImageType> WriterType;
-  typedef otb::InverseSensorModel<double> ModelType;
+  typedef otb::ImageFileReader<ImageType>  ReaderType;
+  typedef otb::ImageFileWriter<ImageType>  WriterType;
+  typedef otb::RPCInverseTransform<double, 2, 2> ModelType;
   typedef itk::LinearInterpolateImageFunction<ImageType, double>     InterpolatorType;
   typedef itk::RescaleIntensityImageFilter<ImageType, CharImageType> RescalerType;
   typedef otb::StreamingResampleImageFilter<ImageType, ImageType>    ResamplerType;
@@ -90,11 +90,11 @@ int otbRegionProjectionResampler(int argc, char* argv[])
   reader->GenerateOutputInformation();
   ImageType::ConstPointer inputImage = reader->GetOutput();
 
-  model->SetImageGeometry(reader->GetOutput()->GetImageKeywordlist());
+  model->SetMetadata(reader->GetOutput()->GetImageMetadata());
 
   if (model->IsValidSensorModel() == false)
   {
-    std::cout << "Invalid Model pointer m_Model == NULL!\n The ossim keywordlist is invalid!" << std::endl;
+    std::cout << "Invalid Model pointer m_Model == NULL!\n The metadata is invalid!" << std::endl;
     return EXIT_FAILURE;
   }
 

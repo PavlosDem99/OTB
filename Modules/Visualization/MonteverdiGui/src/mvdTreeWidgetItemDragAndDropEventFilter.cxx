@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -134,7 +134,7 @@ bool TreeWidgetItemDragAndDropEventFilter::DropEvent(QObject*, QDropEvent* e)
 
   for (QTreeWidgetItemList::const_iterator it = items.begin(); it != items.end(); ++it)
   {
-    emit ItemDropped(*it);
+    Q_EMIT ItemDropped(*it);
   }
 
   //

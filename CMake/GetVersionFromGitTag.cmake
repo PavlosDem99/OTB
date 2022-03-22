@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -116,7 +116,7 @@ function(get_package_name root_repo_dir project project_version_string)
     
     message(STATUS "M: ${_VERSION_MAJOR}, m: ${_VERSION_MINOR}, p: ${_VERSION_PATCH}")
 
-	  set(${project_version_string} "${PROJECT_VERSION_STRING}" PARENT_SCOPE)
+    set(${project_version_string} "${PROJECT_VERSION_STRING}" PARENT_SCOPE)
     
   endif()
 

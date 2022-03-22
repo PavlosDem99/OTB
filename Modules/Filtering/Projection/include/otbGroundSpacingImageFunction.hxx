@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -116,12 +116,12 @@ GroundSpacingImageFunction<TInputImage, TCoordRep>::GetPixelLocation(const Index
   }
 
   TransformType::Pointer         transform = TransformType::New();
-  const itk::MetaDataDictionary& inputDict = this->GetInputImage()->GetMetaDataDictionary();
-  transform->SetInputDictionary(inputDict);
+  transform->SetInputImageMetadata(&(this->GetInputImage()->GetImageMetadata()));
   transform->SetInputOrigin(this->GetInputImage()->GetOrigin());
   transform->SetInputSpacing(this->GetInputImage()->GetSignedSpacing());
 
   transform->InstantiateTransform();
+
   return transform->TransformPoint(inputPoint);
 }
 

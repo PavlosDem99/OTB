@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -109,8 +109,9 @@ private:
                             "In overwrite mode, the original features will be lost.");
     MandatoryOff("out");
 
-    AddParameter(ParameterType_ListView, "feat", "Input features to use for reduction");
+    AddParameter(ParameterType_Field, "feat", "Input features to use for reduction");
     SetParameterDescription("feat", "List of field names in the input vector data used as features for reduction.");
+    SetVectorData("feat", "in");
 
     AddParameter(ParameterType_Choice, "featout", "Output feature");
     SetParameterDescription("featout", "Naming of output features");

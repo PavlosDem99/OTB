@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -27,10 +27,13 @@ set(OTBIOGDAL_SRC
   otbOGRIOHelper.cxx
   otbOGRVectorDataIO.cxx
   otbOGRVectorDataIOFactory.cxx
+  otbDEMHandler.cxx
+  otbGDALImageMetadataInterface.cxx
+  otbGDALRPCTransformer.cxx
   )
 
 add_library(OTBIOGDAL ${OTBIOGDAL_SRC})
-target_link_libraries(OTBIOGDAL 
+target_link_libraries(OTBIOGDAL
   ${OTBVectorDataBase_LIBRARIES}
   ${OTBGdalAdapters_LIBRARIES}
   ${OTBTinyXML_LIBRARIES}
@@ -38,7 +41,6 @@ target_link_libraries(OTBIOGDAL
   ${OTBCommon_LIBRARIES}
   ${OTBGDAL_LIBRARIES}
   ${OTBBoost_LIBRARIES}
-  ${OTBOSSIMAdapters_LIBRARIES}
   )
 
 otb_module_target(OTBIOGDAL)

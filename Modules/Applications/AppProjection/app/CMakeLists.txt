@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -28,10 +28,11 @@ otb_create_application(
   SOURCES        otbConvertCartoToGeoPoint.cxx
   LINK_LIBRARIES ${${otb-module}_LIBRARIES})
 
-otb_create_application(
-  NAME           GenerateRPCSensorModel
-  SOURCES        otbGenerateRPCSensorModel.cxx
-  LINK_LIBRARIES ${${otb-module}_LIBRARIES})
+# TODO refactor this application
+#otb_create_application(
+#  NAME           GenerateRPCSensorModel
+#  SOURCES        otbGenerateRPCSensorModel.cxx
+#  LINK_LIBRARIES ${${otb-module}_LIBRARIES})
 
 otb_create_application(
   NAME           GridBasedImageResampling
@@ -48,10 +49,11 @@ otb_create_application(
   SOURCES        otbObtainUTMZoneFromGeoPoint.cxx
   LINK_LIBRARIES ${${otb-module}_LIBRARIES})
 
-otb_create_application(
-  NAME           RefineSensorModel
-  SOURCES        otbRefineSensorModel.cxx
-  LINK_LIBRARIES ${${otb-module}_LIBRARIES})
+# TODO refactor this application
+#otb_create_application(
+#  NAME           RefineSensorModel
+#  SOURCES        otbRefineSensorModel.cxx
+#  LINK_LIBRARIES ${${otb-module}_LIBRARIES})
 
 otb_create_application(
   NAME           RigidTransformResample

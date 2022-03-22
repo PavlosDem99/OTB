@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -112,7 +112,7 @@ public:
 
   //
   // SIGNALS.
-signals:
+Q_SIGNALS:
 
   /*-[ PROTECTED SECTION ]---------------------------------------------------*/
 
@@ -182,7 +182,7 @@ protected:
 
   //
   // Protected slots.
-protected slots:
+protected Q_SLOTS:
 
   /**
    */
@@ -226,7 +226,7 @@ private:
 
   //
   // Private slots.
-private slots:
+private Q_SLOTS:
 
   /**
    * \brief Qt auto-connected slot which is called when File/Quit menu

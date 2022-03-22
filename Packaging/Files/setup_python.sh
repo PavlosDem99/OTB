@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -29,9 +29,9 @@ python_version_check() {
 
 python_check_failed() {
     printf %s\\n "*****Error occurred during installation******"
-    printf %s\\n "OTB python bindings normally require python 3.5 but current \
+    printf %s\\n "OTB python bindings normally require python 3.8 (or 3.7 for windows users) but current \
                   detected python version is $python_version"
-    printf %s\\n "If you have python 3.5 installed in your system you should \
+    printf %s\\n "If you have python 3.8 (or 3.7 for win users) installed in your system you should \
                   set OTB_PYTHON_EXE and re-run this installation script."
     printf %s\\n "eg: OTB_PYTHON_EXE=/path/to/python3 ./OTB-X.Y-Linux64.run"
     printf %s\\n "Python bindings might not work."
@@ -65,7 +65,7 @@ if [ ! $CUSTOM_PYTHON ]
     then
     python_check_failed
   fi
-else # case wher user provides an OTB_PYTHON_EXE
+else # case where user provides an OTB_PYTHON_EXE
   if [ ! "$python_major_version" -eq 3 ] || [ ! "$python_minor_version" -eq 5 ]
     then
     printf %s\\n "*****Warning******"

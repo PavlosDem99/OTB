@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -37,7 +37,7 @@ ADD_SUPERBUILD_CMAKE_VAR(GEOTIFF JPEG_LIBRARY)
 
 ExternalProject_Add(GEOTIFF
   PREFIX GEOTIFF
-  URL "http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.7.0.tar.gz"
+  URL "https://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.7.0.tar.gz"
   URL_MD5 e57b69098d70a008ddfc65b675cbfcf4
   SOURCE_DIR ${GEOTIFF_SB_SRC}
   BINARY_DIR ${GEOTIFF_SB_BUILD_DIR}

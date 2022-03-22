@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -22,7 +22,7 @@
 #define otbTerraSarBrightnessImageFilter_hxx
 
 #include "otbTerraSarBrightnessImageFilter.h"
-#include "otbTerraSarXSarImageMetadataInterface.h"
+#include "otbMetaDataKey.h"
 
 namespace otb
 {
@@ -32,17 +32,15 @@ void TerraSarBrightnessImageFilter<TInputImage, TOutputImage>::BeforeThreadedGen
 {
   Superclass::BeforeThreadedGenerateData();
 
-  // Load metada
-  TerraSarXSarImageMetadataInterface::Pointer lImageMetadata = otb::TerraSarXSarImageMetadataInterface::New();
-  lImageMetadata->SetMetaDataDictionary(this->GetInput()->GetMetaDataDictionary());
-  bool mdIsAvailable = lImageMetadata->CanRead();
+  /** Retrieve the ImageMetadata */
+  auto imd = this->GetInput()->GetImageMetadata();
 
   // If the user doesn't set it AND the metadata is available, set calFactor using image metadata
   if (this->GetCalibrationFactor() == itk::NumericTraits<double>::Zero)
   {
-    if (mdIsAvailable)
+    if (imd.Has(MDNum::CalFactor))
     {
-      this->SetCalibrationFactor(lImageMetadata->GetCalibrationFactor());
+      this->SetCalibrationFactor(imd[MDNum::CalFactor]);
     }
     else
     {

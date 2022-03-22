@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -224,38 +224,16 @@ std::string GlImageActor::GetWkt() const
   return m_FileReader->GetOutput()->GetProjectionRef();
 }
 
-GlImageActor::ImageKeywordlistType GlImageActor::GetKwl() const
+const ImageMetadata * GlImageActor::GetImd() const
 {
-  return m_FileReader->GetOutput()->GetImageKeywordlist();
+  return &(m_FileReader->GetOutput()->m_Imd);
 }
 
-
-bool
-GlImageActor
-::HasKwl() const
+bool GlImageActor::GetImd( ImageMetadata & imd ) const
 {
+  imd = m_FileReader->GetOutput()->GetImageMetadata();
   return true;
 }
-
-
-bool
-GlImageActor
-::GetKwl( ImageKeywordlist & kwl ) const
-{
-  assert( !m_FileReader.IsNull() );
-  assert( m_FileReader->GetOutput()!=NULL );
-
-  kwl = m_FileReader->GetOutput()->GetImageKeywordlist();
-
-  return true;
-}
-
-
-GlImageActor::MetaDataDictionaryType & GlImageActor::GetMetaDataDictionary() const
-{
-  return m_FileReader->GetOutput()->GetMetaDataDictionary();
-}
-
 
 void GlImageActor::Initialize(const std::string & filename)
 {
@@ -745,9 +723,6 @@ void GlImageActor::ImageRegionToViewportExtent(const RegionType& region, double 
 
 void GlImageActor::ImageRegionToViewportQuad(const RegionType & region, PointType & ul, PointType & ur, PointType & ll, PointType & lr, bool rotate) const
 {
-  // Retrieve settings
-  ViewSettings::ConstPointer settings = this->GetSettings();
-
   itk::ContinuousIndex<double,2> cul,cur,cll,clr;
 
   cul[0] = region.GetIndex()[0];
@@ -802,9 +777,6 @@ void GlImageActor::ImageRegionToViewportQuad(const RegionType & region, PointTyp
 
 void GlImageActor::ViewportExtentToImageRegion(const double& ulx, const double & uly, const double & lrx, const double & lry, RegionType & region) const
 {
-  // Retrieve settings
-  ViewSettings::ConstPointer settings = this->GetSettings();
-
   RegionType largest = m_FileReader->GetOutput()->GetLargestPossibleRegion();
 
   PointType ul,ur,ll,lr,tul,tur,tll,tlr;
@@ -1117,8 +1089,14 @@ void GlImageActor::UpdateTransforms()
     geometryChanged = geometryChanged
   || (m_ViewportToImageTransform.IsNotNull() && m_ViewportToImageTransform->GetInputProjectionRef() != settings->GetWkt())
   || (m_ImageToViewportTransform.IsNotNull() && m_ImageToViewportTransform->GetOutputProjectionRef() != settings->GetWkt())
-    || (m_ViewportToImageTransform.IsNotNull() && !(m_ViewportToImageTransform->GetInputKeywordList() == settings->GetKeywordList()))
-        || (m_ImageToViewportTransform.IsNotNull() && !(m_ImageToViewportTransform->GetOutputKeywordList() == settings->GetKeywordList()));
+  || (m_ViewportToImageTransform.IsNotNull() && m_ViewportToImageTransform->GetInputImageMetadata()
+                                             && settings->GetImageMetadata()
+                                             && !HasSameSensorModel(*(m_ViewportToImageTransform->GetInputImageMetadata()),
+                                                                    *(settings->GetImageMetadata())))
+  || (m_ImageToViewportTransform.IsNotNull() && m_ImageToViewportTransform->GetOutputImageMetadata()
+                                             && settings->GetImageMetadata()
+                                             && !HasSameSensorModel(*(m_ImageToViewportTransform->GetOutputImageMetadata()),
+                                                                    *(settings->GetImageMetadata())));
 
   if(settings->GetUseProjection() && geometryChanged)
     {
@@ -1130,14 +1108,14 @@ void GlImageActor::UpdateTransforms()
     m_ImageToViewportTransform = RSTransformType::New();
 
     m_ViewportToImageTransform->SetInputProjectionRef(settings->GetWkt());
-    m_ViewportToImageTransform->SetInputKeywordList(settings->GetKeywordList());
+    m_ViewportToImageTransform->SetInputImageMetadata(settings->GetImageMetadata());
     m_ViewportToImageTransform->SetOutputProjectionRef(m_FileReader->GetOutput()->GetProjectionRef());
-    m_ViewportToImageTransform->SetOutputKeywordList(m_FileReader->GetOutput()->GetImageKeywordlist());
+    m_ViewportToImageTransform->SetOutputImageMetadata(&(m_FileReader->GetOutput()->GetImageMetadata()));
 
     m_ImageToViewportTransform->SetOutputProjectionRef(settings->GetWkt());
-    m_ImageToViewportTransform->SetOutputKeywordList(settings->GetKeywordList());
+    m_ImageToViewportTransform->SetOutputImageMetadata(settings->GetImageMetadata());
     m_ImageToViewportTransform->SetInputProjectionRef(m_FileReader->GetOutput()->GetProjectionRef());
-    m_ImageToViewportTransform->SetInputKeywordList(m_FileReader->GetOutput()->GetImageKeywordlist());
+    m_ImageToViewportTransform->SetInputImageMetadata(&(m_FileReader->GetOutput()->GetImageMetadata()));
 
     hasChanged = true;
     }

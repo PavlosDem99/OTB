@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -34,7 +34,7 @@ namespace otb
  * \ingroup OTBProjection
  **/
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType = double, unsigned int NInputDimensions = 2,
+template <TransformDirection TTransformDirection, class TScalarType = double, unsigned int NInputDimensions = 2,
           unsigned int NOutputDimensions = 2>
 class ITK_EXPORT       TileMapTransform : public Transform<TScalarType, // Data type for scalars
                                                      NInputDimensions,  // Number of dimensions in the input space
@@ -57,7 +57,7 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(TileMapTransform, Transform);
 
-  static const TransformDirection::TransformationDirection DirectionOfMapping = TTransformDirection;
+  static const TransformDirection DirectionOfMapping = TTransformDirection;
 
   itkStaticConstMacro(InputSpaceDimension, unsigned int, NInputDimensions);
   itkStaticConstMacro(OutputSpaceDimension, unsigned int, NOutputDimensions);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -131,6 +131,22 @@ public:
   };
 
   static SpatialReference FromUTM(unsigned int zone, hemisphere hem);
+
+  /**
+   * \brief Build a SpatialReference from the datum, ellipsoid, prime meridian and angular units
+   *
+   * See OGRSpatialReference::SetGeogCS for more details.
+   *
+   * \param GeogName user visible name for the geographic coordinate system
+   * \param DatumName key name for this datum.
+   * \param SpheroidName user visible spheroid name
+   * \param SemiMajor the semi major axis of the spheroid
+   * \param InvFlattening the inverse flattening for the spheroid
+   * \throws InvalidSRDescriptionException in case of failure of FromGeogCS()
+   */
+  static SpatialReference FromGeogCS(const std::string& GeogName, const std::string& DatumName,
+                                     const std::string& SpheroidName, const double SemiMajor,
+                                     const double InvFlattening);
 
   /// Copy constructor
   SpatialReference(const SpatialReference& other) noexcept;

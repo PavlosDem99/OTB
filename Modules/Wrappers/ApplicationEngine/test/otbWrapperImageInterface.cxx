@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -60,13 +60,11 @@ int otbWrapperImageInterface(int argc, char* argv[])
   ofs << "Size: " << app1->GetImageSize("out") << std::endl;
   ofs << "Origin: " << app1->GetImageOrigin("out") << std::endl;
   ofs << "Spacing: " << app1->GetImageSpacing("out") << std::endl;
-  ofs << "Keywordlist: " << std::endl;
-  otb::ImageKeywordlist kwl = app1->GetImageKeywordlist("out");
-  kwl.Print(ofs);
+
   ofs << "ProjectionRef:" << std::endl;
   ofs << app1->GetImageProjection("out") << std::endl;
 
-  itk::MetaDataDictionary dict = app1->GetImageMetaData("out");
+  itk::MetaDataDictionary dict = app1->GetMetadataDictionary("out");
   ofs << "Dictionary keys:" << std::endl;
   for (auto& key : dict.GetKeys())
   {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -255,7 +255,7 @@ private:
     {
 
       // Clear and reset the DEM Handler
-      otb::DEMHandler::Instance()->ClearDEMs();
+      otb::DEMHandler::GetInstance().ClearElevationParameters();
       otb::Wrapper::ElevationParametersHandler::SetupDEMHandlerFromElevationParameters(this, "elev");
 
       // input image
@@ -565,7 +565,7 @@ private:
 
     // Set the output projection Ref
     m_ResampleFilter->SetInputProjectionRef(inImage->GetProjectionRef());
-    m_ResampleFilter->SetInputKeywordList(inImage->GetImageKeywordlist());
+    m_ResampleFilter->SetInputImageMetadata(&(inImage->GetImageMetadata()));
     m_ResampleFilter->SetOutputProjectionRef(m_OutputProjectionRef);
 
     // Check size

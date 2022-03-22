@@ -1,6 +1,6 @@
 
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -74,7 +74,6 @@ target_link_libraries(OTBApplicationEngine
   ${OTBCommon_LIBRARIES}
   ${OTBImageBase_LIBRARIES}
   ${OTBBoost_LIBRARIES}
-  ${OTBOSSIMAdapters_LIBRARIES}
   ${OTBMPI_LIBRARIES}
   ${OTBMPIConfig_LIBRARIES}
   ${OTBMPITiffWriter_LIBRARIES}

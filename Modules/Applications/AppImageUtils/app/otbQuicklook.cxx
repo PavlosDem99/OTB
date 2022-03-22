@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -73,8 +73,9 @@ private:
     AddParameter(ParameterType_OutputImage, "out", "Output Image");
     SetParameterDescription("out", "The subsampled image");
 
-    AddParameter(ParameterType_ListView, "cl", "Channel List");
+    AddParameter(ParameterType_Band, "cl", "Channel List");
     SetParameterDescription("cl", "Selected channels");
+    SetRasterData("cl", "in");
     MandatoryOff("cl");
 
     AddParameter(ParameterType_Int, "rox", "ROI Origin X");

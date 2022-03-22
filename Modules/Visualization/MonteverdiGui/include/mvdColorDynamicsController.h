@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -102,7 +102,7 @@ public:
 
   //
   // Slots.
-public slots:
+public Q_SLOTS:
   /**
    * \brief Slot called when the band-index of a RGB channel has
    * changed.
@@ -132,7 +132,7 @@ public slots:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    * \brief
    */
@@ -193,7 +193,7 @@ private:
    * \brief Set low and high intensitied of controlled widget based on
    * the values stored in the model settings.
    *
-   * \param channels RGB/W channels for which to set low and hight intensities.
+   * \param channels RGB/W channels for which to set low and high intensities.
    */
   void SetIntensities(RgbwChannel channels);
 
@@ -258,7 +258,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   /**
    */
   void RefreshHistogram();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -142,16 +142,15 @@ public:
   itkGetConstReferenceMacro(AllTouchedMode, bool);
   itkBooleanMacro(AllTouchedMode);
 
-  /** Useful to set the output parameters from an existing image*/
-  void SetOutputParametersFromImage(const ImageBaseType* image);
+  /** Useful to set the output parameters from an existing image pointer*/
+  template <class ImagePointerType>
+  void SetOutputParametersFromImage(const ImagePointerType image);
 
 protected:
   void GenerateData() override;
 
   OGRDataSourceToLabelImageFilter();
-  ~OGRDataSourceToLabelImageFilter() override
-  {
-  }
+  ~OGRDataSourceToLabelImageFilter() override = default;
 
   void GenerateOutputInformation() override;
 

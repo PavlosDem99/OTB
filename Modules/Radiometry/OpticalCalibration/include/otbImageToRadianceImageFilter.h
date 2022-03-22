@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,7 +25,6 @@
 #include "otbUnaryImageFunctorWithVectorImageFilter.h"
 #include "itkNumericTraits.h"
 #include "otbMacro.h"
-#include "otbOpticalImageMetadataInterfaceFactory.h"
 
 
 namespace otb
@@ -172,15 +171,16 @@ protected:
   /** Update the functor list and input parameters */
   void BeforeThreadedGenerateData(void) override
   {
-    OpticalImageMetadataInterface::Pointer imageMetadataInterface = OpticalImageMetadataInterfaceFactory::CreateIMI(this->GetInput()->GetMetaDataDictionary());
-    if (m_Alpha.GetSize() == 0)
+    const auto & metadata = this->GetInput()->GetImageMetadata();
+
+    if (m_Alpha.GetSize() == 0 && metadata.HasBandMetadata(MDNum::PhysicalGain))
     {
-      m_Alpha = imageMetadataInterface->GetPhysicalGain();
+      m_Alpha = metadata.GetAsVector(MDNum::PhysicalGain);
     }
 
-    if (m_Beta.GetSize() == 0)
+    if (m_Beta.GetSize() == 0 && metadata.HasBandMetadata(MDNum::PhysicalBias))
     {
-      m_Beta = imageMetadataInterface->GetPhysicalBias();
+      m_Beta = metadata.GetAsVector(MDNum::PhysicalBias);
     }
 
     otbMsgDevMacro(<< "Dimension: ");

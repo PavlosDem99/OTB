@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -333,7 +333,7 @@ void I18nCoreApplication::Initialize()
 /*******************************************************************************/
 void I18nCoreApplication::SetModel(AbstractModel* model)
 {
-  emit AboutToChangeModel(model);
+  Q_EMIT AboutToChangeModel(model);
 
   delete m_Model;
 
@@ -342,15 +342,13 @@ void I18nCoreApplication::SetModel(AbstractModel* model)
   if (model != NULL)
     m_Model->setParent(this);
 
-  emit ModelChanged(m_Model);
+  Q_EMIT ModelChanged(m_Model);
 }
 
 /*******************************************************************************/
 bool I18nCoreApplication::ElevationSetup()
 {
-  assert(!otb::DEMHandler::Instance().IsNull());
-
-  otb::DEMHandler::Pointer demHandlerInstance(otb::DEMHandler::Instance());
+  auto & demHandlerInstance = otb::DEMHandler::GetInstance();
 
   bool geoidUpdated = false;
 
@@ -363,7 +361,7 @@ bool I18nCoreApplication::ElevationSetup()
     {
       QString filename(I18nCoreApplication::RetrieveSettingsKey(I18nCoreApplication::SETTINGS_KEY_GEOID_PATH).toString());
 
-      geoidUpdated = demHandlerInstance->OpenGeoidFile(QFile::encodeName(filename));
+      geoidUpdated = demHandlerInstance.OpenGeoidFile(QFile::encodeName(filename).toStdString());
 
       // BUGFIX: When geoid file has not been updated by
       // otb::DEMHandler, the filename may be erroneous and unchecked
@@ -397,9 +395,9 @@ bool I18nCoreApplication::ElevationSetup()
 
     try
     {
-      demHandlerInstance->ClearDEMs();
+      demHandlerInstance.ClearElevationParameters();
 
-      demHandlerInstance->OpenDEMDirectory(QFile::encodeName(I18nCoreApplication::RetrieveSettingsKey(I18nCoreApplication::SETTINGS_KEY_SRTM_DIR).toString()));
+      demHandlerInstance.OpenDEMDirectory(QFile::encodeName(I18nCoreApplication::RetrieveSettingsKey(I18nCoreApplication::SETTINGS_KEY_SRTM_DIR).toString()).toStdString());
     }
     catch (const std::exception& err)
     {
@@ -413,7 +411,7 @@ bool I18nCoreApplication::ElevationSetup()
   }
   else
   {
-    otb::DEMHandler::Instance()->ClearDEMs();
+    otb::DEMHandler::GetInstance().ClearElevationParameters();
   }
 
   return geoidUpdated;
@@ -429,7 +427,7 @@ void I18nCoreApplication::InitializeLocale()
 
     qDebug() << "Available codecs:";
 
-    foreach (const QByteArray& codec, codecs)
+    Q_FOREACH (const QByteArray& codec, codecs)
       qDebug() << "\t" << codec;
   }
 

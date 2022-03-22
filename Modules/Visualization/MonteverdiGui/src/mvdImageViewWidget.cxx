@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -583,13 +583,13 @@ void ImageViewWidget::mouseMoveEvent(QMouseEvent* e)
 
     //
     // Emit reference-layer pixel data.
-    emit PixelInfoChanged(e->pos(), ptView, stackedLayerModel->PixelInfos());
+    Q_EMIT PixelInfoChanged(e->pos(), ptView, stackedLayerModel->PixelInfos());
 
     if (stackedLayerModel->HasCurrent())
-      emit PhysicalCursorPositionChanged(e->pos(), ptView, pixels[stackedLayerModel->GetCurrentIndex()].m_Point,
+      Q_EMIT PhysicalCursorPositionChanged(e->pos(), ptView, pixels[stackedLayerModel->GetCurrentIndex()].m_Point,
                                          pixels[stackedLayerModel->GetCurrentIndex()].m_Pixel);
     else
-      emit PhysicalCursorPositionChanged(e->pos(), ptView, PointType(), DefaultImageType::PixelType());
+      Q_EMIT PhysicalCursorPositionChanged(e->pos(), ptView, PointType(), DefaultImageType::PixelType());
   }
   else if (isAnyEffectActive)
   {
@@ -1032,7 +1032,7 @@ void ImageViewWidget::OnApplyAllRequested()
         }
       }
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1057,7 +1057,7 @@ ImageViewWidget
     }
   }
 
-  emit ModelUpdated();
+  Q_EMIT ModelUpdated();
 }
 
 /******************************************************************************/
@@ -1068,7 +1068,7 @@ void ImageViewWidget::OnClearProjectionRequired()
   assert(m_Manipulator!=NULL);
 
   m_Manipulator->SetWkt(std::string());
-  m_Manipulator->SetKeywordList(otb::ViewSettings::KeywordListType());
+  m_Manipulator->SetImd(nullptr);
 
   // m_Manipulator->SetOrigin( imageModel->GetOrigin() );
   // m_Manipulator->SetSpacing( imageModel->GetSpacing() );
@@ -1283,7 +1283,7 @@ void ImageViewWidget::OnResetQuantilesRequested(bool isGlobal)
   }
     */
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1310,7 +1310,7 @@ void ImageViewWidget::OnResizeShaderRequested(double factor)
 
     imageModel->GetSettings().SetSize(static_cast<double>(imageModel->GetSettings().GetSize()) * factor);
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1338,7 +1338,7 @@ void ImageViewWidget::OnReparamShaderRequested(double factor)
 
     imageModel->GetSettings().SetValue(static_cast<double>(imageModel->GetSettings().GetValue()) * factor);
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1352,7 +1352,7 @@ void ImageViewWidget::OnRoiChanged(const PointType&, const SizeType&, const Spac
   //   << "[" << point[ 0 ] << "," << point[ 1 ] << "]"
   //   << "[" << center[ 0 ] << "," << center[ 1 ] << "]";
 
-  emit CenterChanged(center);
+  Q_EMIT CenterChanged(center);
 
   AbstractImageModel* imageModel = m_Renderer->GetReferenceModel<AbstractImageModel>();
 
@@ -1387,10 +1387,10 @@ void ImageViewWidget::OnRoiChanged(const PointType&, const SizeType&, const Spac
   update();
 
   // Emit absolute scale.
-  emit ScaleChanged(rsx, rsy);
+  Q_EMIT ScaleChanged(rsx, rsy);
 
   // Emit zooming scale-factor.
-  emit RoiChanged(center, rsx, rsy);
+  Q_EMIT RoiChanged(center, rsx, rsy);
 }
 
 /******************************************************************************/
@@ -1481,7 +1481,7 @@ void ImageViewWidget::OnScaleDynamicsRequested(double factor)
       }
     */
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1573,7 +1573,7 @@ void ImageViewWidget::OnSetProjectionRequired()
     assert(m_Manipulator != NULL);
 
     m_Manipulator->SetWkt(image->GetProjectionRef());
-    m_Manipulator->SetKeywordList(image->GetImageKeywordlist());
+    m_Manipulator->SetImd(&(image->m_Imd));
 
     m_Manipulator->SetOrigin(imageModel->GetOrigin());
     m_Manipulator->SetSpacing(imageModel->GetSpacing());
@@ -1637,7 +1637,7 @@ void ImageViewWidget::OnShaderEffectRequested(Effect effect)
 
     imageModel->GetSettings().SetEffect(effect);
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1662,7 +1662,7 @@ void ImageViewWidget::OnShiftAlphaRequested(double delta)
 
     imageModel->GetSettings().SetAlpha(imageModel->GetSettings().GetAlpha() + delta);
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1768,7 +1768,7 @@ void ImageViewWidget::OnShiftDynamicsRequested(double delta)
       }
     */
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1867,7 +1867,7 @@ void ImageViewWidget::OnUpdateGammaRequested(double factor)
 
     imageModel->GetSettings().SetGamma(imageModel->GetSettings().GetGamma() * factor);
 
-    emit ModelUpdated();
+    Q_EMIT ModelUpdated();
   }
 }
 
@@ -1919,7 +1919,7 @@ void ImageViewWidget::OnUpdateProjectionRequired()
     // Update the Manipulator reference projection.
     // Then all view manipulation will use this projection reference.
     m_Manipulator->SetWkt(image->GetProjectionRef());
-    m_Manipulator->SetKeywordList(image->GetImageKeywordlist());
+    m_Manipulator->SetImd(&(image->m_Imd));
     m_Manipulator->SetNativeSpacing(imageModel->GetNativeSpacing());
   }
   else

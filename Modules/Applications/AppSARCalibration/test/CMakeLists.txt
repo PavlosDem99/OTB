@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -61,7 +61,7 @@ endif()
 
 otb_test_application(NAME apTvRaSARCalibration_RADARSAT2
   APP  SARCalibration
-  OPTIONS -in ${INPUTDATA}/RADARSAT2_ALTONA_300_300_VV.tif?&geom=${INPUTDATA}/RADARSAT2_ALTONA_300_300_VV.geom
+  OPTIONS -in ${INPUTDATA}/radarsat2/RADARSAT2_ALTONA_300_300_VV.tif?&geom=${INPUTDATA}/radarsat2/RADARSAT2_ALTONA_300_300_VV.geom
   -out ${TEMP}/apTvRaSarRadiometricCalibration_RADARSAT2.tif
   VALID   --compare-image ${EPSILON_5}
   ${BASELINE}/raTvSarRadiometricCalibration_RADARSAT2.tif

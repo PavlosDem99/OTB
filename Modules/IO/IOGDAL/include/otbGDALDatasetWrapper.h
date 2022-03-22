@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,6 +25,7 @@
 #include "itkObjectFactory.h"
 
 #include "otbConfigure.h"
+#include "otbGeometryMetadata.h"
 
 
 class GDALDataset;
@@ -75,6 +76,9 @@ public:
   /**
    */
   size_t GetPixelBytes() const;
+
+  Projection::GCPParam GetGCPParam() const;
+  void SetGCPParam(Projection::GCPParam gcpParam);
 
 protected:
   GDALDatasetWrapper();

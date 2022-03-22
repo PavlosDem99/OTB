@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -169,6 +169,12 @@ public:
   ImageBaseType::Pointer ToImageBase() override;
 
   /**
+   * Get a reference to the ImageMetadata.
+   */
+  const otb::ImageMetadata & GetImageMetadata() const override;
+
+
+  /**
    * Get the placename from the center pixel
    */
   std::string GetCenterPixelPlaceName();
@@ -189,8 +195,8 @@ public:
   /*-[ PUBLIC SLOTS SECTION ]------------------------------------------------*/
 
   //
-  // Public slots.
-public slots:
+  // Public Q_SLOTS.
+public Q_SLOTS:
   /**
    */
   void OnPhysicalCursorPositionChanged(const QPoint&, const PointType&, const PointType&, const DefaultImageType::PixelType&);
@@ -199,7 +205,7 @@ public slots:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    */
   void SettingsUpdated(AbstractImageModel* imageModel = NULL);
@@ -272,7 +278,7 @@ private:
   // AbstractLayerModel methods.
 
   std::string virtual_GetWkt() const override;
-  bool        virtual_HasKwl() const override;
+  bool virtual_HasSensorModel() const override;
   void virtual_ToWgs84(const PointType&, PointType&, double& alt) const override;
 
   //
@@ -303,7 +309,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   /** */
   void OnModelUpdated();
 };

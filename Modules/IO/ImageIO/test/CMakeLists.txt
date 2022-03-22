@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 # Copyright (C) 2020 CS Systemes d'Information (CS SI)
 #
 # This file is part of Orfeo Toolbox
@@ -75,7 +75,6 @@ otbCompareWritingComplexImage.cxx
 otbImageFileReaderOptBandTest.cxx
 otbImageFileWriterOptBandTest.cxx
 otbMultiImageFileWriterTest.cxx
-otbWriteGeomFile.cxx
 )
 
 add_executable(otbImageIOTestDriver ${OTBImageIOTests})
@@ -1297,12 +1296,22 @@ otb_add_test(NAME ioTvMultiImageFileWriter_BoxExtendedFilename
   ${TEMP}/ioTvMultiImageFileWriter_ExtendedFilename2.tif?&box=10:10:15:15
   50)
 
-otb_add_test(NAME ioTvCompoundMetadataReaderTest
-  COMMAND otbImageIOTestDriver
-  --compare-ascii ${EPSILON_9}
-  ${INPUTDATA}/QB_Toulouse_SensorModel_labelImage.geom
-  ${TEMP}/ioTvCompoundMetadataReaderTest.geom
-  --ignore-lines-with 1 support_data.
-  otbWriteGeomFile
-  ${INPUTDATA}/QB_Toulouse_combo.vrt
-  ${TEMP}/ioTvCompoundMetadataReaderTest.tif)
+
+
+
+otb_add_test(NAME ioTvCompareMetadataTest COMMAND otbImageIOTestDriver
+  --compare-metadata ${EPSILON_9}
+  LARGEINPUT{SENTINEL1/S1A_S6_SLC__1SSV_20150619T195043}
+  LARGEINPUT{SENTINEL1/S1A_S6_SLC__1SSV_20150619T195043}
+  otbImageFileReaderRGBTest
+  ${INPUTDATA}/couleurs_extrait.png
+  ${TEMP}/ioImageFileReaderRGB_PNG2PNG.png )
+
+# Imports metadata from a tif file containing OTB type metadata and export it in another tif
+otb_add_test(NAME ioTvImportExportMetadataTest COMMAND otbImageIOTestDriver
+  --compare-metadata ${EPSILON_9}
+  ${INPUTDATA}/metadataIOexample.tif
+  ${TEMP}/ioTvImportExportMetadataTest.tif
+  otbImageFileReaderTest
+  ${INPUTDATA}/metadataIOexample.tif # contains OTB metadata
+  ${TEMP}/ioTvImportExportMetadataTest.tif )

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -101,20 +101,39 @@ reset_qt_i18n_sources()
 
 repository_status(${PROJECT_SOURCE_DIR} OTB_GIT_STATUS_MESSAGE)
 
-# Find python stuff
-# Version 3 is preferred before 2
-set ( Python_ADDITIONAL_VERSIONS "3;2" )
-set ( PythonInterp_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
-set ( PythonLibs_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
-find_package( PythonInterp )
-if ( OTB_WRAP_PYTHON AND ( "x${PYTHON_VERSION_MAJOR}" STREQUAL "x2" ) )
-    message (WARNING "Python3 not found. There is no longer support of \
-    wrapping in python2 in OTB, but it can still be used.")
+if(OTB_WRAP_PYTHON)
+  # Find python stuff
+  # Version 3 is preferred before 2
+  if(CMAKE_VERSION VERSION_LESS 3.12.0)
+    set ( Python_ADDITIONAL_VERSIONS "3;2" )
+    set ( PythonInterp_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
+    set ( PythonLibs_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
+    find_package( PythonInterp )
+    if ( OTB_WRAP_PYTHON AND ( "x${PYTHON_VERSION_MAJOR}" STREQUAL "x2" ) )
+        message (WARNING "Python3 not found. There is no longer support of \
+        wrapping in python2 in OTB, but it can still be used.")
+    endif()
+    # Now that we have a python version the addditional versions should only
+    # contain the version we have to get the corresponding libs
+    set (Python_ADDITIONAL_VERSIONS "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+    find_package ( PythonLibs )
+  else()
+    if(WIN32)
+      set(Python_ROOT_DIR "C:/tools/Python37-x64")
+    endif()
+    find_package(Python REQUIRED COMPONENTS Interpreter Development)
+    if(Python_FOUND)
+      message(STATUS "Python Library directory : ${Python_LIBRARY_DIRS}")
+      message(STATUS "Python Headers directory : ${Python_INCLUDE_DIRS}")
+      #For compatibility reason, we have to define these variables
+      set(PYTHON_LIBRARIES ${Python_LIBRARIES})
+      set(PYTHON_INCLUDE_DIR ${Python_INCLUDE_DIRS})
+      set(PYTHON_LIBRARY_DIR ${Python_LIBRARY_DIRS})
+      set(PYTHON_VERSION_STRING ${Python_VERSION})
+      set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+    endif()
+  endif()
 endif()
-# Now that we have a python version the addditional versions should only
-# contain the version we have to get the corresponding libs
-set (Python_ADDITIONAL_VERSIONS "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-find_package ( PythonLibs )
 
 #-----------------------------------------------------------------------------
 # Configure the default OTB_DATA_ROOT for the location of OTB Data.
@@ -132,8 +151,8 @@ set(main_project_name ${_OTBModuleMacros_DEFAULT_LABEL})
 
 #-----------------------------------------------------------------------------
 # OTB version number.
-set(OTB_VERSION_MAJOR "7")
-set(OTB_VERSION_MINOR "4")
+set(OTB_VERSION_MAJOR "8")
+set(OTB_VERSION_MINOR "0")
 set(OTB_VERSION_PATCH "0")
 set(OTB_VERSION_STRING "${OTB_VERSION_MAJOR}.${OTB_VERSION_MINOR}.${OTB_VERSION_PATCH}")
 
@@ -460,7 +479,7 @@ if(UNIX)
     COMMAND ./SuperbuildDownloadList.sh
       ${OTB_BINARY_DIR}/Download
       ${OTB_BINARY_DIR}
-    WORKING_DIRECTORY ${OTB_SOURCE_DIR}/Utilities/Maintenance
+    WORKING_DIRECTORY ${OTB_SOURCE_DIR}/CI
     )
 endif()
 
@@ -515,6 +534,7 @@ foreach(otb_option
     CMAKE_CXX_FLAGS
     ${option_list}
     OTB_WRAP_PYTHON
+    OTB_WRAP_QGIS
     OTB_DATA_ROOT
     OTB_USE_OPENMP
     OTB_USE_SSE_FLAGS
@@ -531,7 +551,6 @@ list(APPEND option_list Boost)
 list(APPEND option_list GDAL)
 list(APPEND option_list GEOTIFF)
 list(APPEND option_list ITK)
-list(APPEND option_list OSSIM)
 list(APPEND option_list TINYXML)
 
 #RK

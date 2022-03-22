@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,6 +25,7 @@
 #include "itkEuclideanDistanceMetric.h"
 #include "otbSpatialReference.h"
 #include "otbGeographicalDistance.h"
+#include "otbDEMHandler.h"
 
 typedef otb::Image<unsigned short>                          ImageType;
 typedef otb::ImageFileReader<ImageType>                     ReaderType;
@@ -74,7 +75,7 @@ int otbGenericRSTransformGenericTest(int argc, char* argv[])
     reader->UpdateOutputInformation();
 
     transform->SetInputProjectionRef(reader->GetOutput()->GetProjectionRef());
-    transform->SetInputKeywordList(reader->GetOutput()->GetImageKeywordlist());
+    transform->SetInputImageMetadata(&(reader->GetOutput()->GetImageMetadata()));
 
     std::cout << "Input projection read from image: " << argv[6] << std::endl;
   }
@@ -110,7 +111,7 @@ int otbGenericRSTransformGenericTest(int argc, char* argv[])
     reader->UpdateOutputInformation();
 
     transform->SetOutputProjectionRef(reader->GetOutput()->GetProjectionRef());
-    transform->SetOutputKeywordList(reader->GetOutput()->GetImageKeywordlist());
+    transform->SetOutputImageMetadata(&(reader->GetOutput()->GetImageMetadata()));
 
     std::cout << "Output projection read from image: " << argv[8] << std::endl;
   }
@@ -150,7 +151,7 @@ int otbGenericRSTransformGenericTest(int argc, char* argv[])
     }
 
     double averageElevation = atof(argv[14]);
-    otb::DEMHandler::Instance()->SetDefaultHeightAboveEllipsoid(averageElevation);
+    otb::DEMHandler::GetInstance().SetDefaultHeightAboveEllipsoid(averageElevation);
 
     std::cout << "Average elevation " << averageElevation << " used." << std::endl;
   }
@@ -162,7 +163,7 @@ int otbGenericRSTransformGenericTest(int argc, char* argv[])
       return EXIT_FAILURE;
     }
 
-    otb::DEMHandler::Instance()->OpenDEMDirectory(argv[14]);
+    otb::DEMHandler::GetInstance().OpenDEMDirectory(argv[14]);
 
     std::cout << "Elevation from DEM " << argv[14] << " used." << std::endl;
   }

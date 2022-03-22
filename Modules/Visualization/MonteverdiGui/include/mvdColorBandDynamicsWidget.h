@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -179,7 +179,7 @@ public:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /** */
   void LowQuantileChanged(RgbwChannel, double);
   /** */
@@ -237,7 +237,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   void on_lowIntensityLineEdit_editingFinished();
   void on_highIntensityLineEdit_editingFinished();
 

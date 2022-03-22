@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -53,8 +53,7 @@ int otbClampImageFilterTest(int itkNotUsed(argc), char* argv[])
 
   reader->SetFileName(argv[1]);
   filter->SetInput(reader->GetOutput());
-  filter->SetLower(100);
-  filter->SetUpper(400);
+  filter->SetThresholds(100, 400);
 
   writer->SetInput(filter->GetOutput());
   writer->SetFileName(argv[2]);

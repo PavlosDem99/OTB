@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -79,8 +79,8 @@ int otbDisparityMapTo3DFilter(int argc, char* argv[])
   StereoFilterType::Pointer filter = StereoFilterType::New();
   filter->SetHorizontalDisparityMapInput(vectorToListFilter->GetOutput()->GetNthElement(0));
   filter->SetVerticalDisparityMapInput(vectorToListFilter->GetOutput()->GetNthElement(1));
-  filter->SetLeftKeywordList(leftReader->GetOutput()->GetImageKeywordlist());
-  filter->SetRightKeywordList(rightReader->GetOutput()->GetImageKeywordlist());
+  filter->SetLeftImageMetadata(&(leftReader->GetOutput()->GetImageMetadata()));
+  filter->SetRightImageMetadata(&(rightReader->GetOutput()->GetImageMetadata()));
   filter->SetLeftEpipolarGridInput(leftGridReader->GetOutput());
   filter->SetRightEpipolarGridInput(rightGridReader->GetOutput());
 

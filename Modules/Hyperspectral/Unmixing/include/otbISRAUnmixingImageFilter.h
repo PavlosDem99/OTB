@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -24,7 +24,7 @@
 #include "itkNumericTraits.h"
 #include "otbFunctorImageFilter.h"
 #include "vnl/algo/vnl_svd.h"
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace otb
 {
@@ -80,7 +80,7 @@ private:
   }
 
   typedef vnl_svd<PrecisionType>     SVDType;
-  typedef boost::shared_ptr<SVDType> SVDPointerType;
+  typedef std::shared_ptr<SVDType> SVDPointerType;
 
   MatrixType     m_U;
   SVDPointerType m_Svd; // SVD of U

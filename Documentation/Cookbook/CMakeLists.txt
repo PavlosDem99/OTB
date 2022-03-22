@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -31,7 +31,7 @@ message(STATUS "")
 message(STATUS "Configuring Cookbook...")
 
 # Check we have python bindings with python 3+
-if (NOT OTB_WRAP_PYTHON OR ${PYTHONLIBS_VERSION_STRING} STRLESS "3.0.0")
+if (NOT OTB_WRAP_PYTHON)
     message(FATAL_ERROR "CookBook build requires Python 3 wrappers. Try setting OTB_WRAP_PYTHON=ON in the CMake configuration, or disable the CookBook with BUILD_COOKBOOK=OFF.")
 endif()
 
@@ -92,6 +92,12 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/RunApplicationsRstGenerator.sh.
   ${CMAKE_CURRENT_BINARY_DIR}/RunApplicationsRstGenerator.sh
   @ONLY)
 
+execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_CURRENT_BINARY_DIR}/RunPythonApiRstGenerator.sh)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CMake/RunPythonApiRstGenerator.sh.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/RunPythonApiRstGenerator.sh
+  @ONLY)
+
 file(COPY ${RST_SOURCE_DIR}  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Art DESTINATION  ${RST_BINARY_DIR})
@@ -117,6 +123,15 @@ add_custom_target(generate_otbapps_rst
   COMMENT "Auto-generating Application Documentation in RST"
   DEPENDS OTBSWIGWrapper-all
   )
+
+add_custom_target(generate_pythonapi_rst
+  COMMAND ${SH_INTERP} ${CMAKE_CURRENT_BINARY_DIR}/RunPythonApiRstGenerator.sh
+  ${RST_BINARY_DIR}
+  WORKING_DIRECTORY ${RST_BINARY_DIR}
+  COMMENT "Auto-generating Python Api Documentation in RST"
+  DEPENDS OTBSWIGWrapper-all
+  )
+
 
 add_custom_target(generate_examples_rst
   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/Scripts/otbGenerateExamplesRstDoc.py
@@ -144,6 +159,7 @@ add_custom_target(CookBookHTML
   -c ${SPHINX_CONF_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS generate_otbapps_rst
+  DEPENDS generate_pythonapi_rst
   DEPENDS generate_examples_rst
   COMMENT "Building RST documentation in html")
 

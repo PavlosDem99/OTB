@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -78,11 +78,11 @@ public:
   /** \brief Constructor */
   MainWindowTitleLoader(VectorImageModel* model);
 
-public slots:
+public Q_SLOTS:
   /** \brief Trigger the dataset creation */
   void LoadTitle();
 
-signals:
+Q_SIGNALS:
   /** \brief Triggered after model is ready */
   void TitleLoaded(const QString&);
 

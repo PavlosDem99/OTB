@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -24,8 +24,16 @@
 #include "otbMachineLearningModel.h"
 #include <string>
 
+// Quiet a deprecation warning
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
+
+#if (defined (__GNUC__) && (__GNUC__ >= 9)) || (defined (__clang__) && (__clang_major__ >= 10))
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
@@ -70,10 +78,10 @@ template <class TInputValue, class NeuronType>
 class ITK_EXPORT AutoencoderModel : public MachineLearningModel<itk::VariableLengthVector<TInputValue>, itk::VariableLengthVector<TInputValue>>
 {
 public:
-  typedef AutoencoderModel Self;
+  typedef AutoencoderModel                                                                                     Self;
   typedef MachineLearningModel<itk::VariableLengthVector<TInputValue>, itk::VariableLengthVector<TInputValue>> Superclass;
-  typedef itk::SmartPointer<Self>       Pointer;
-  typedef itk::SmartPointer<const Self> ConstPointer;
+  typedef itk::SmartPointer<Self>                                                                              Pointer;
+  typedef itk::SmartPointer<const Self>                                                                        ConstPointer;
 
   typedef typename Superclass::InputValueType       InputValueType;
   typedef typename Superclass::InputSampleType      InputSampleType;
@@ -91,7 +99,7 @@ public:
   typedef typename Superclass::ProbaSampleType     ProbaSampleType;
   typedef typename Superclass::ProbaListSampleType ProbaListSampleType;
   /// Neural network related typedefs
-  typedef shark::ConcatenatedModel<shark::RealVector> ModelType;
+  typedef shark::ConcatenatedModel<shark::RealVector>                ModelType;
   typedef shark::LinearModel<shark::RealVector, NeuronType>          LayerType;
   typedef shark::LinearModel<shark::RealVector, shark::LinearNeuron> OutLayerType;
 

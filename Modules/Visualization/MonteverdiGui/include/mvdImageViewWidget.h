@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -155,7 +155,7 @@ public:
 
   //
   // Public SLOTS.
-public slots:
+public Q_SLOTS:
   /**
    */
   bool SetGLSLEnabled( bool ) noexcept;
@@ -194,7 +194,7 @@ public slots:
 
   //
   // SIGNALS.
-signals:
+Q_SIGNALS:
   /**
    */
   void PhysicalCursorPositionChanged(const QPoint& screen, const PointType& view, const PointType& physical, const DefaultImageType::PixelType&);
@@ -308,7 +308,7 @@ private:
 #endif // USE_XP_REGION_OPTIM
 
   /*-[ PRIVATE SLOTS SECTION ]-----------------------------------------------*/
-private slots:
+private Q_SLOTS:
   /**
    */
   void OnRoiChanged(const PointType&, const SizeType&, const SpacingType&, const PointType&);

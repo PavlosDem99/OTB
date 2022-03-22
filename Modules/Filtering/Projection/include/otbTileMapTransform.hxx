@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -28,17 +28,17 @@
 namespace otb
 {
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::TileMapTransform() : Superclass(ParametersDimension), m_Depth(0)
 {
 }
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::~TileMapTransform()
 {
 }
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 typename TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::OutputPointType
 TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::TransformPoint(const InputPointType& point) const
 {
@@ -66,18 +66,18 @@ TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDime
   return outputPoint;
 }
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 void TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::PrintMap() const
 {
 }
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 void TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::SetLevel(unsigned int level)
 {
   this->SetDepth(level);
 }
 
-template <TransformDirection::TransformationDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+template <TransformDirection TTransformDirection, class TScalarType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
 unsigned int TileMapTransform<TTransformDirection, TScalarType, NInputDimensions, NOutputDimensions>::GetLevel() const
 {
   return this->GetDepth();

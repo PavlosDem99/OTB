@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -157,13 +157,13 @@ private:
      */
 
     std::string      projRef = GetParameterImage("in")->GetProjectionRef();
-    ImageKeywordlist kwl     = GetParameterImage("in")->GetImageKeywordlist();
-
+    const auto & imageMetadata       = GetParameterImage("in")->GetImageMetadata();
+    
     VectorDataType::Pointer vd = lsd->GetFilter()->GetOutputVectorData();
 
     VectorDataType::Pointer projectedVD = vd;
 
-    if (projRef.empty() && kwl.GetSize() > 0)
+    if (projRef.empty() && imageMetadata.HasSensorGeometry())
     {
       // image is in sensor model geometry
 
@@ -172,7 +172,7 @@ private:
 
       VectorDataProjectionFilterType::Pointer vproj = VectorDataProjectionFilterType::New();
       vproj->SetInput(vd);
-      vproj->SetInputKeywordList(GetParameterImage("in")->GetImageKeywordlist());
+      vproj->SetInputImageMetadata(&imageMetadata);
       // vproj->SetInputOrigin(GetParameterImage("in")->GetOrigin());
       // vproj->SetInputSpacing(GetParameterImage("in")->GetSignedSpacing());
 

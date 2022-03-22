@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -45,7 +45,7 @@ int otbGeometriesProjectionFilterFromMapToImage(int argc, char* argv[])
   otb::ogr::DataSource::Pointer input  = otb::ogr::DataSource::New(argv[1], otb::ogr::DataSource::Modes::Read);
   InputGeometriesType::Pointer  in_set = InputGeometriesType::New(input);
 
-  // Input Keywordlist (from image)
+  // Input image information
   typedef otb::Image<unsigned short int, 2> ImageType;
   typedef otb::ImageFileReader<ImageType> ImageReaderType;
   ImageReaderType::Pointer                imageReader = ImageReaderType::New();

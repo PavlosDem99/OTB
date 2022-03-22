@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -55,6 +55,7 @@ otbGeometriesProjectionFilterFromMapToImage.cxx
 otbGeometriesProjectionFilterFromMapToEPSG.cxx
 otbVectorDataProjectionFilter.cxx
 otbImportGeoInformationImageFilter.cxx
+otbRPCSolverTest.cxx
 )
 
 
@@ -65,17 +66,7 @@ set(GEOMGCP
 "QB/qb-1"             #LARGEINPUT{QUICKBIRD/TOULOUSE/000000128955_01_P001_PAN/02APR01105228-P1BS-000000128955_01_P001.TIF}
 "ikonos/ikonos-1"     #LARGEINPUT{IKONOS/BLOSSEVILLE/po_2619900_nir_0000000.tif}
 "rapideye/rapideye-1" #LARGEINPUT{RAPIDEYE/level1B/2008-12-25T005918_RE3_1B-NAC_397971_12345_band3.ntf}
-"sentinel1/sentinel1-1" #LARGEINPUT{SENTINEL1/S1A_S6_SLC__1SSV_20150619T195043/measurement/s1a-s6-slc-vv-20150619t195043-20150619t195101-006447-00887d-001.tiff}
-)
-
-set(NEEDEDKW
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #Pleiades
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #World view 2
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #Spot 6
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #QB
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #Ikonos
-"line_den_coeff line_num_coeff samp_den_coeff samp_num_coeff" #Rapideye
-"number_lines number_samples orbitList support_data.geom.bursts support_data.geom.gcp support_data.pulse_repetition_frequency support_data.radar_frequency support_data.range_sampling_rate support_data.slant_range_to_first_pixel" # Sentinel1
+#"sentinel1/sentinel1-1" #LARGEINPUT{SENTINEL1/S1A_S6_SLC__1SSV_20150619T195043/measurement/s1a-s6-slc-vv-20150619t195043-20150619t195101-006447-00887d-001.tiff} TODO: Reactivate when new SARModel is implemented
 )
 
 set(GEOTOL
@@ -91,7 +82,6 @@ set(GEOTOL
 set( GEOM_TESTNB 0)
 foreach( file ${GEOMGCP} )
   list(GET GEOMGCP   ${GEOM_TESTNB}  current_geomgcp   )
-  list(GET NEEDEDKW   ${GEOM_TESTNB} current_neededkw   )
   list(GET GEOTOL     ${GEOM_TESTNB} current_geotol )
   math(EXPR GEOM_TESTNB "${GEOM_TESTNB} + 1")
 
@@ -106,11 +96,9 @@ foreach( file ${GEOMGCP} )
     ${INPUTDATA}/${current_geomgcp}.geom
     ${INPUTDATA}/${current_geomgcp}.gcp
     ${TEMP}/${TESTNAME}.gcp # baseline (produced only if argv[7] == 1)
-    ${current_neededkw}
     1 # imgTol
     ${current_geotol} # geoTol
     0 # create baseline (argv[7])
-    1 # 0 : no keyword check  1 : check needed keywords
   )
 endforeach()
 
@@ -127,8 +115,8 @@ endforeach()
 
 #Other sensor : no keyword check
 set(GEOMGCP
-"ers2/ers2-1"       #LARGEINPUT{SAR_ERS2_SLCI_SCENE1/DAT_01.001}
-"spot5/spot5-1"     #LARGEINPUT{SPOT5/TEHERAN/IMAGERY.TIF}
+#"ers2/ers2-1"       #LARGEINPUT{SAR_ERS2_SLCI_SCENE1/DAT_01.001}  TODO: Reactivate when new SARModel is implemented
+# "spot5/spot5-1"     #LARGEINPUT{SPOT5/TEHERAN/IMAGERY.TIF}  TODO: Reactivate when new SensorModel is implemented
 "geoeye1/geoeye1-1" #LARGEINPUT{GEOEYE/MARCILLOLES/po_350134_bgrn_0000001.tif}
 )
 
@@ -150,11 +138,9 @@ foreach( file ${GEOMGCP} )
     ${INPUTDATA}/${current_geomgcp}.geom
     ${INPUTDATA}/${current_geomgcp}.gcp
     ${TEMP}/${TESTNAME}.gcp # baseline (produced only if argv[7] == 1)
-    "Foo"
     1 # imgTol
     1 # geoTol
     0 # create baseline (argv[7])
-    0 # 0 : no keyword check  1 : check needed keywords
   )
 endforeach()
 
@@ -581,10 +567,37 @@ otb_add_test(NAME prTvLeastSquareAffineTransformEstimator COMMAND otbProjectionT
   352 807 919 10023 12102 14181
   )
 
-set(VALID_CONDITION err=12)
-if(OTB_OSSIM_VERSION LESS 20200)
-set(VALID_CONDITION err=10)
+
+otb_add_test(NAME prTvRPCSolverNoDEMValidationTest COMMAND otbProjectionTestDriver
+  otbRPCSolverTest
+  LARGEINPUT{QUICKBIRD/TOULOUSE/000000128955_01_P001_PAN/02APR01105228-P1BS-000000128955_01_P001.TIF}
+  10 0.25 0.35
+  no
+  no
+  )
+
+otb_add_test(NAME prTvRPCSolverNotEnoughPointsForElevationTest COMMAND otbProjectionTestDriver
+  otbRPCSolverTest
+  LARGEINPUT{QUICKBIRD/TOULOUSE/000000128955_01_P001_PAN/02APR01105228-P1BS-000000128955_01_P001.TIF}
+  5 0.25 0.35
+  no
+  no
+  )
+
+otb_add_test(NAME prTvRPCSolverNotEnoughPointsTest COMMAND otbProjectionTestDriver
+  otbRPCSolverTest
+  LARGEINPUT{QUICKBIRD/TOULOUSE/000000128955_01_P001_PAN/02APR01105228-P1BS-000000128955_01_P001.TIF}
+  4 0.25 0.35
+  ${INPUTDATA}/DEM/srtm_directory/
+  ${INPUTDATA}/DEM/egm96.grd
+  )
+if (OTB_DATA_USE_LARGEINPUT)
+  set_property(TEST prTvRPCSolverNotEnoughPointsTest PROPERTY WILL_FAIL TRUE)
 endif()
+
+
+set(VALID_CONDITION err=12)
+
 otb_add_test(NAME prTvGCPsToRPCSensorModelImageCheckInputGcpPointsProjection_WithDEM COMMAND otbProjectionTestDriver
   otbGCPsToRPCSensorModelImageFilterCheckRpcModel
   ${INPUTDATA}/QB_TOULOUSE_MUL_Extract_500_500.tif
@@ -693,9 +706,7 @@ otb_add_test(NAME prTvGCPsToRPCSensorModelImageCheckInputGcpPointsProjection_Wit
   )
 
 set(VALID_CONDITION err=20)
-if(OTB_OSSIM_VERSION LESS 20200)
-set(VALID_CONDITION err=10)
-endif()
+
 otb_add_test(NAME prTvGCPsToRPCSensorModelImageCheckInputGcpPointsProjection_WithoutDEM COMMAND otbProjectionTestDriver
   otbGCPsToRPCSensorModelImageFilterCheckRpcModel
   ${INPUTDATA}/QB_TOULOUSE_MUL_Extract_500_500.tif
@@ -827,13 +838,11 @@ otb_add_test(NAME prTvTileImageFilterGenericRSTransformTest_LASVEGAS_DIMAPv1 COM
   LARGEINPUT{PLEIADES/LASVEGAS_JP2_DIMAPv1_PRIMARY_PMS_lossless_12bits/IMGPHR_PHR1A_SENSOR_20120217_IPU_20120217_5374-001_V1/IMG_R3C1.JP2}
   )
 
-set(VALID_CONDITION)
-if(OTB_OSSIM_VERSION LESS 20200)
 set(VALID_CONDITION
   --compare-image ${EPSILON_4}
   ${BASELINE}/otbGCPsToRPCSensorModelImageFilterAndOrthoOutput.tif
   ${TEMP}/otbGCPsToRPCSensorModelImageFilterAndOrthoOutput.tif)
-endif()
+
 otb_add_test(NAME prTvGCPsToRPCSensorModelImageFilterAndOrtho COMMAND otbProjectionTestDriver
   ${VALID_CONDITION}
   otbGCPsToRPCSensorModelImageFilterAndOrtho
@@ -954,13 +963,11 @@ otb_add_test(NAME prTvGCPsToRPCSensorModelImageFilterAndOrtho COMMAND otbProject
   #LARGEINPUT{VECTOR/MidiPyrenees/roads.shp}
   #)
 
-set(VALID_CONDITION)
-if(OTB_OSSIM_VERSION LESS 20200)
 set(VALID_CONDITION
   --compare-ascii ${EPSILON_4}
   ${BASELINE_FILES}/otbGCPsToRPCSensorModelImageFilterWithoutDEMOutput.txt
   ${TEMP}/otbGCPsToRPCSensorModelImageFilterWithoutDEMOutput.txt)
-endif()
+
 otb_add_test(NAME prTvGCPsToRPCSensorModelImageFilterWithoutDEM COMMAND otbProjectionTestDriver
   ${VALID_CONDITION}
   otbGCPsToRPCSensorModelImageFilterWithoutDEM

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -42,7 +42,7 @@ public:
   QtWidgetStringParameter(StringParameter*, QtWidgetModel*, QWidget*);
   ~QtWidgetStringParameter() override;
 
-protected slots:
+protected Q_SLOTS:
   void SetValue(const QString& value);
 
 private:

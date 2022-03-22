@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -44,6 +44,7 @@
 
 //
 // OTB includes (sorted by alphabetic order)
+#include "otbImageMetadata.h"
 #include "OTBMonteverdiGUIExport.h"
 //
 // Monteverdi includes (sorted by alphabetic order)
@@ -125,7 +126,7 @@ public:
   /** Set the image keywordlist 
     \deprecated
    */
-  virtual void SetKeywordList(const DefaultImageType::ImageKeywordlistType& kwl) = 0;
+  virtual void SetImd(const otb::ImageMetadata* imd) = 0;
 
   /**
    */
@@ -192,7 +193,7 @@ public:
 
   //
   // Public SLOTS.
-public slots:
+public Q_SLOTS:
   /**
    */
   virtual void CenterOn(const PointType& point) = 0;
@@ -204,7 +205,7 @@ public slots:
 
   //
   // SIGNALS.
-signals:
+Q_SIGNALS:
   /**
    */
   void RefreshViewRequested();
@@ -278,7 +279,7 @@ private:
 
   //
   // SLOTS.
-private slots:
+private Q_SLOTS:
 };
 
 } // end namespace 'mvd'

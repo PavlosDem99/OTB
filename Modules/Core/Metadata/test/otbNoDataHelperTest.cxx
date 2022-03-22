@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -28,10 +28,10 @@ int otbNoDataHelperTest(int itkNotUsed(argc), char* itkNotUsed(argv)[])
   std::vector<bool>   b1(1, true);
   std::vector<double> v1(1, 0);
 
-  itk::MetaDataDictionary dict;
+  otb::ImageMetadata imd;
 
-  otb::WriteNoDataFlags(b1, v1, dict);
-  otb::ReadNoDataFlags(dict, b1, v1);
+  otb::WriteNoDataFlags(b1, v1, imd);
+  otb::ReadNoDataFlags(imd, b1, v1);
 
   otbControlConditionTestMacro(otb::IsNoData(10, b1, v1), " wrong output of IsNoData function");
   otbControlConditionTestMacro(!otb::IsNoData(0, b1, v1), " wrong output of IsNoData function");

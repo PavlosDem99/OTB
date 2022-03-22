@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -73,7 +73,7 @@ void QtWidgetStringParameter::SetValue(const QString& value)
   m_StringParam->SetValue(value.toLatin1().constData());
   // notify of value change
   QString key(m_StringParam->GetKey());
-  emit    ParameterChanged(key);
+  Q_EMIT    ParameterChanged(key);
 }
 }
 }

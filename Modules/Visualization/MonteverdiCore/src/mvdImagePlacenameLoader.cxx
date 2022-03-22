@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -56,10 +56,10 @@ void ImagePlacenameLoader::LoadPlacename()
   if (!placename.empty())
   {
     // emit a signal to
-    emit PlacenameLoaded(FromStdString(placename));
+    Q_EMIT PlacenameLoaded(FromStdString(placename));
   }
 
-  emit Finished();
+  Q_EMIT Finished();
 }
 
 } // end namespace 'mvd'

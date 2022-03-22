@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -46,14 +46,14 @@ public:
   const QLineEdit* GetInput() const;
   QLineEdit*       GetInput();
 
-signals:
+Q_SIGNALS:
   void FileNameIsSet();
 
-protected slots:
+protected Q_SLOTS:
   bool SetFileName(const QString& value);
   void SelectFile();
 
-private slots:
+private Q_SLOTS:
   void OnEditingFinished();
 
 private:

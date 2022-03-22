@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -21,6 +21,7 @@
 #include "otbWrapperElevationParametersHandler.h"
 #include "otbDEMHandler.h"
 
+
 namespace otb
 {
 namespace Wrapper
@@ -30,8 +31,7 @@ void ElevationParametersHandler::AddElevationParameters(Application::Pointer app
 {
   app->AddParameter(ParameterType_Group, key, "Elevation management");
   app->SetParameterDescription(key,
-                               "This group of parameters allows managing elevation values. Supported formats are SRTM, DTED or any geotiff. DownloadSRTMTiles "
-                               "application could be a useful tool to list/download tiles related to a product.");
+                               "This group of parameters allows managing elevation values.");
 
   // DEM directory
   std::ostringstream oss;
@@ -39,7 +39,7 @@ void ElevationParametersHandler::AddElevationParameters(Application::Pointer app
   app->AddParameter(ParameterType_Directory, oss.str(), "DEM directory");
   app->SetParameterDescription(oss.str(),
                                "This parameter allows selecting a directory containing Digital Elevation Model files. Note that this directory should contain "
-                               "only DEM files. Unexpected behaviour might occurs if other images are found in this directory.");
+                               "only DEM files. Unexpected behaviour might occurs if other images are found in this directory. Input DEM tiles should be in a raster format supported by GDAL.");
   app->MandatoryOff(oss.str());
 
   std::string demDirFromConfig = otb::ConfigurationManager::GetDEMDirectory();
@@ -98,8 +98,11 @@ void ElevationParametersHandler::AddElevationParameters(Application::Pointer app
 
 void ElevationParametersHandler::SetupDEMHandlerFromElevationParameters(const Application::Pointer app, const std::string& key)
 {
+  auto & demHandler = otb::DEMHandler::GetInstance();
+
   // Set default elevation
-  otb::DEMHandler::Instance()->SetDefaultHeightAboveEllipsoid(GetDefaultElevation(app, key));
+  demHandler.SetDefaultHeightAboveEllipsoid(GetDefaultElevation(app, key));
+
 
   std::ostringstream oss;
   oss << "Elevation management: setting default height above ellipsoid to " << GetDefaultElevation(app, key) << " meters" << std::endl;
@@ -111,7 +114,8 @@ void ElevationParametersHandler::SetupDEMHandlerFromElevationParameters(const Ap
   {
     oss.str("");
     oss << "Elevation management: using geoid file (" << GetGeoidFile(app, key) << ")" << std::endl;
-    otb::DEMHandler::Instance()->OpenGeoidFile(GetGeoidFile(app, key));
+    demHandler.OpenGeoidFile(GetGeoidFile(app, key));
+    
     app->GetLogger()->Info(oss.str());
   }
 
@@ -119,11 +123,11 @@ void ElevationParametersHandler::SetupDEMHandlerFromElevationParameters(const Ap
   if (IsDEMUsed(app, key))
   {
     std::string demDirectory = GetDEMDirectory(app, key);
-    if (otb::DEMHandler::Instance()->IsValidDEMDirectory(demDirectory.c_str()))
+    if (demHandler.IsValidDEMDirectory(demDirectory.c_str()))
     {
       oss.str("");
       oss << "Elevation management: using DEM directory (" << demDirectory << ")" << std::endl;
-      otb::DEMHandler::Instance()->OpenDEMDirectory(demDirectory);
+      demHandler.OpenDEMDirectory(demDirectory);
       app->GetLogger()->Info(oss.str());
     }
     else

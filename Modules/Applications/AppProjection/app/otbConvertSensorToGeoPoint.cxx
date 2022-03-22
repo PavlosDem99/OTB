@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -21,7 +21,7 @@
 #include "otbWrapperApplication.h"
 #include "otbWrapperApplicationFactory.h"
 
-#include "otbForwardSensorModel.h"
+#include "otbRPCForwardTransform.h"
 #include "otbCoordinateToName.h"
 
 namespace otb
@@ -44,7 +44,7 @@ public:
   itkTypeMacro(ConvertSensorToGeoPoint, otb::Application);
 
   /** Filters typedef */
-  typedef otb::ForwardSensorModel<double> ModelType;
+  typedef otb::RPCForwardTransform<double, 2, 2> ModelType;
   typedef itk::Point<double, 2> PointType;
 
 private:
@@ -111,7 +111,7 @@ private:
 
     // Instantiate a ForwardSensor Model
     ModelType::Pointer model = ModelType::New();
-    model->SetImageGeometry(inImage->GetImageKeywordlist());
+    model->SetMetadata(inImage->GetImageMetadata());
     if (model->IsValidSensorModel() == false)
     {
       itkGenericExceptionMacro(<< "Unable to create a model");

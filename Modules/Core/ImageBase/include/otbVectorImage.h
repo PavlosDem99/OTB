@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -30,6 +30,7 @@
 #include "itkVectorImage.h"
 #endif
 #include "otbImageMetadataInterfaceBase.h"
+#include "otbImageCommons.h"
 #include "OTBImageBaseExport.h"
 
 namespace otb
@@ -41,19 +42,19 @@ namespace otb
  * \ingroup OTBImageBase
  */
 template <class TPixel, unsigned int VImageDimension = 2>
-class OTBImageBase_EXPORT_TEMPLATE VectorImage : public itk::VectorImage<TPixel, VImageDimension>
+class OTBImageBase_EXPORT_TEMPLATE VectorImage
+  : public itk::VectorImage<TPixel, VImageDimension>
+  , public ImageCommons
 {
 public:
   /** Standard class typedefs. */
-  typedef VectorImage Self;
-  typedef itk::VectorImage<TPixel, VImageDimension> Superclass;
-  typedef itk::SmartPointer<Self>       Pointer;
-  typedef itk::SmartPointer<const Self> ConstPointer;
-  typedef itk::WeakPointer<const Self>  ConstWeakPointer;
+  using Self = VectorImage;
+  using Superclass = itk::VectorImage<TPixel, VImageDimension>;
+  using Pointer = itk::SmartPointer<Self>;
+  using ConstPointer = itk::SmartPointer<const Self>;
+  using ConstWeakPointer = itk::WeakPointer<const Self>;
 
-  typedef ImageMetadataInterfaceBase::VectorType           VectorType;
-  typedef ImageMetadataInterfaceBase::ImageKeywordlistType ImageKeywordlistType;
-  typedef ImageMetadataInterfaceBase::Pointer              ImageMetadataInterfacePointerType;
+  using VectorType = ImageMetadataInterfaceBase::VectorType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -119,29 +120,17 @@ public:
    * of the index (0, 0). */
   typedef typename Superclass::PointType PointType;
 
-  /** Get the projection coordinate system of the image. */
-  virtual std::string GetProjectionRef(void) const;
-
-  virtual void SetProjectionRef(const std::string& wkt);
-
-  /** Get the GCP projection coordinates of the image. */
-  virtual std::string GetGCPProjection(void) const;
-
-  virtual unsigned int GetGCPCount(void) const;
-
-  virtual OTB_GCP& GetGCPs(unsigned int GCPnum);
-  virtual const OTB_GCP& GetGCPs(unsigned int GCPnum) const;
-
-  virtual std::string GetGCPId(unsigned int GCPnum) const;
-  virtual std::string GetGCPInfo(unsigned int GCPnum) const;
-  virtual double GetGCPRow(unsigned int GCPnum) const;
-  virtual double GetGCPCol(unsigned int GCPnum) const;
-  virtual double GetGCPX(unsigned int GCPnum) const;
-  virtual double GetGCPY(unsigned int GCPnum) const;
-  virtual double GetGCPZ(unsigned int GCPnum) const;
-
   /** Get the six coefficients of affine geoTtransform. */
   virtual VectorType GetGeoTransform(void) const;
+
+  /** Get image corners. */
+  // TODO: GenericRSTransform should be instantiated to translate from physical
+  // space to EPSG:4328 ?
+  VectorType GetUpperLeftCorner(void) const;
+  VectorType GetUpperRightCorner(void) const;
+  VectorType GetLowerLeftCorner(void) const;
+  VectorType GetLowerRightCorner(void) const;
+
 
   /** Get signed spacing */
   SpacingType GetSignedSpacing() const;
@@ -150,26 +139,7 @@ public:
   virtual void SetSignedSpacing(SpacingType spacing);
   virtual void SetSignedSpacing(double spacing[VImageDimension]);
 
-  /** Get image corners. */
-  virtual VectorType GetUpperLeftCorner(void) const;
-  virtual VectorType GetUpperRightCorner(void) const;
-  virtual VectorType GetLowerLeftCorner(void) const;
-  virtual VectorType GetLowerRightCorner(void) const;
-
-  /** Get image keyword list 
-  * \deprecated
-  */
-  virtual ImageKeywordlistType       GetImageKeywordlist(void);
-
-  /** Get image keyword list 
-  * \deprecated
-  */
-  virtual const ImageKeywordlistType GetImageKeywordlist(void) const;
-
-  /** Set the image keywordlist 
-    \deprecated
-   */
-  virtual void SetImageKeywordList(const ImageKeywordlistType& kwl);
+  virtual void SetNumberOfComponentsPerPixel(unsigned int n) override;
 
   /// Copy metadata from a DataObject
   void CopyInformation(const itk::DataObject*) override;
@@ -209,14 +179,6 @@ protected:
 private:
   VectorImage(const Self&) = delete;
   void operator=(const Self&) = delete;
-
-  /** Return the ImageMetadataInterfacePointer associated to the data
-   *  and creates it on first call
-   */
-  ImageMetadataInterfacePointerType GetMetaDataInterface() const;
-
-  // The image metadata accessor object. Don't use it directly. Instead use GetMetaDataInterface()
-  mutable ImageMetadataInterfacePointerType m_ImageMetadataInterface;
 };
 
 } // end namespace otb

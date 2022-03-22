@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -94,10 +94,8 @@ void KmzProductWriter<TInputImage>::Write()
 
   // Do some checks, If no metadata nor projection ref available,
   // input is not usable.
-  bool emptyProjRef = m_VectorImage->GetProjectionRef().empty();
-  bool emptyKWL     = m_VectorImage->GetImageKeywordlist().GetSize() == 0 ? true : false;
-
-  if (emptyProjRef && emptyKWL)
+  if (!(m_VectorImage->GetImageMetadata().HasSensorGeometry()
+        || m_VectorImage->GetImageMetadata().HasProjectedGeometry()))
   {
     itkExceptionMacro(<< "The input image have empty keyword list, please use an image with metadata information");
   }
@@ -415,7 +413,7 @@ void KmzProductWriter<TInputImage>::Tiling()
         /** TODO : Generate KML for this tile */
         // Search Lat/Lon box
         m_Transform = TransformType::New();
-        m_Transform->SetInputKeywordList(m_ResampleVectorImage->GetImageKeywordlist());
+        m_Transform->SetInputImageMetadata(&(m_ResampleVectorImage->GetImageMetadata()));
         m_Transform->SetInputProjectionRef(m_VectorImage->GetProjectionRef());
         m_Transform->SetOutputProjectionRef(wgsRef);
         m_Transform->InstantiateTransform();

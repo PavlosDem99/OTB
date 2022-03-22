@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -43,7 +43,7 @@ otbSarRadiometricCalibrationToImageFilterWithComplexPixelTest.cxx
 otbSarBrightnessToImageFilterTest.cxx
 otbSarDeburstFilterTest.cxx
 otbSarBurstExtractionFilterTest.cxx
-otbS1ThermalNoiseLutTest.cxx
+otbSarConcatenateBurstsImageFilter.cxx
 )
 
 add_executable(otbSARCalibrationTestDriver ${OTBSARCalibrationTests})
@@ -292,7 +292,7 @@ otb_add_test(NAME raTvSarBrightnessToImageFilter COMMAND  otbSARCalibrationTestD
   1000 1000 250 250 # Extract
   )
 
-otb_add_test(NAME saTvSarDeburstImageFilterTest COMMAND otbSARCalibrationTestDriver
+otb_add_test(NAME saTvSarDeburstImageFilterTest1 COMMAND otbSARCalibrationTestDriver
   --compare-image ${NOTOL}
   ${BASELINE}/saTvSarDeburstImageFilterTestOutput.tif
   ${TEMP}/saTvSarDeburstImageFilterTestOutput.tif
@@ -336,8 +336,14 @@ otb_add_test(NAME saTvSarBurstExtractionImageFilterTest2 COMMAND otbSARCalibrati
   ${TEMP}/saTvSarBurstImageFilterTest2Output.tif
   1)
 
-  otb_add_test(NAME saTvS1ThermalNoiseLutTest COMMAND otbSARCalibrationTestDriver
-  otbS1ThermalNoiseLutTest
-  ${INPUTDATA}/S1A_IW_GRDH_1SDV_20210202T060035_20210202T060100_036407_0445F3_B8EA_vh_extract.tif?&geom=${INPUTDATA}/S1A_IW_GRDH_1SDV_20210202T060035_20210202T060100_036407_0445F3_B8EA_vh_extract.geom
-  659.993737792968772737
-  2088.05800001586567304912023246)
+otb_add_test(NAME saTvSarConcatenateBurstsImageFilterTest COMMAND otbSARCalibrationTestDriver
+  --compare-image ${NOTOL}
+  ${BASELINE}/apTvRaSarConcatenateBursts_SENTINEL1_output.tif
+  ${TEMP}/saTvSarConcatenateBurstsImageFilterTest.tif
+  otbSarConcatenateBurstsImageFilterTest
+  ${INPUTDATA}/s1a-iw1-slc-vv-20170111_Burst0_amp.tif
+  ${INPUTDATA}/s1a-iw1-slc-vv-20170111_Burst1_amp.tif
+  ${INPUTDATA}/s1a-iw1-slc-vv-20170111_Burst01_amp.tiff
+  0
+  ${TEMP}/saTvSarConcatenateBurstsImageFilterTest.tif)
+

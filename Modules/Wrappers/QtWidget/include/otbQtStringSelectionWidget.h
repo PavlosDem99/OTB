@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -43,7 +43,7 @@ class OTBQtWidget_EXPORT QtStringSelectionWidget : public QWidget
 
   Q_PROPERTY(QString text READ GetText WRITE SetText RESET ClearText);
 
-signals:
+Q_SIGNALS:
   void InternalQLineEditEditionFinished();
 
 public:
@@ -62,7 +62,7 @@ public:
 
   void ClearText();
 
-protected slots:
+protected Q_SLOTS:
   void OnEditionFinished();
 
 private:

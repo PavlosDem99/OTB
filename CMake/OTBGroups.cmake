@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -122,7 +122,7 @@ foreach( group ${group_list} )
   set( _current_module 0 )
   foreach(module ${_${group}_module_list})
     if( NOT OTB_MODULE_${module}_EXCLUDE_FROM_DEFAULT )
-      list( APPEND _${group}_on_module_list ${_module_name} )
+      list( APPEND _${group}_on_module_list ${module} )
     endif()
   endforeach()
 endforeach()

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -26,36 +26,31 @@
 #include "otbImageFileReader.h"
 #include "otbImageFileWriter.h"
 
-int otbImageFileReaderWithExtendedFilename(int itkNotUsed(argc), char* argv[])
+int otbImageFileReaderWithExtendedFilename(int argc, char* argv[])
 {
   // Verify the number of parameters in the command line
-  const char* inputFilename   = argv[1];
-  const char* outputFilename1 = argv[2];
-  const char* outputFilename2 = argv[3];
+  if (argc != 3)
+  {
+    std::cout << "Usage: otbImageFileReaderWithExtendedFilename <inputImageFile> <outputImageFile>\n";
+  }
+  const char* inputFilename  = argv[1];
+  const char* outputFilename = argv[2];
 
-  typedef float      InputPixelType;
+  using PixelType = float;
   const unsigned int Dimension = 2;
 
-  typedef otb::Image<InputPixelType, Dimension> InputImageType;
+  using ImageType = otb::Image<PixelType, Dimension>;
 
-  typedef otb::ImageFileReader<InputImageType> ReaderType;
+  using ReaderType = otb::ImageFileReader<ImageType>;
+  using WriterType = otb::ImageFileWriter<ImageType>;
 
   ReaderType::Pointer reader = ReaderType::New();
-
-  std::ofstream file1;
-  file1.open(outputFilename1);
-
-  std::ofstream file2;
-  file2.open(outputFilename2);
+  WriterType::Pointer writer = WriterType::New();
 
   reader->SetFileName(inputFilename);
-  reader->Update();
-
-  file1 << reader->GetOutput()->GetImageKeywordlist();
-
-  file2 << "ProjRef: " << reader->GetOutput()->GetProjectionRef() << std::endl;
-  file2 << "Origin: " << reader->GetOutput()->GetOrigin() << std::endl;
-  file2 << "Spacing: " << reader->GetOutput()->GetSignedSpacing() << std::endl;
+  writer->SetInput(reader->GetOutput());
+  writer->SetFileName(outputFilename);
+  writer->Update();
 
   return EXIT_SUCCESS;
 }

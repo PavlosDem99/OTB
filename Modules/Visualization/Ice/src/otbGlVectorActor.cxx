@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -663,11 +663,11 @@ void GlVectorActor::UpdateTransforms()
   if(settings->GetUseProjection())
     {
     m_ViewportToVectorTransform->SetInputProjectionRef(settings->GetWkt());
-    m_ViewportToVectorTransform->SetInputKeywordList(settings->GetKeywordList());
+    m_ViewportToVectorTransform->SetInputImageMetadata(settings->GetImageMetadata());
     m_ViewportToVectorTransform->SetOutputProjectionRef((m_OGRDataSource->GetLayerChecked(m_CurrentLayer).GetProjectionRef()));
     
     m_VectorToViewportTransform->SetOutputProjectionRef(settings->GetWkt());
-    m_VectorToViewportTransform->SetOutputKeywordList(settings->GetKeywordList());
+    m_VectorToViewportTransform->SetOutputImageMetadata(settings->GetImageMetadata());
     m_VectorToViewportTransform->SetInputProjectionRef((m_OGRDataSource->GetLayerChecked(m_CurrentLayer).GetProjectionRef()));
     }
   m_ViewportToVectorTransform->InstantiateTransform();

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -21,6 +21,7 @@
 set(OTBProjection_SRC
   otbGeometriesProjectionFilter.cxx
   otbPleiadesPToXSAffineTransformCalculator.cxx
+  otbRPCSolver.cxx
   )
 
 add_library(OTBProjection ${OTBProjection_SRC})
@@ -29,7 +30,6 @@ target_link_libraries(OTBProjection
   ${OTBGdalAdapters_LIBRARIES}
   ${OTBImageBase_LIBRARIES}
   ${OTBTransform_LIBRARIES}
-  ${OTBOSSIMAdapters_LIBRARIES}
   ${OTBImageManipulation_LIBRARIES}
   ${OTBMetadata_LIBRARIES}
   ${OTBBoost_LIBRARIES}

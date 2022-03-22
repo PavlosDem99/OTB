@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -81,6 +81,7 @@ set(WINDOWS_SYSTEM_DLLS
   wldap32.dll
   ws2_32.dll
   wsock32.dll
+  MSVCP140_1.dll
   )
 
 set(LINUX_SYSTEM_DLLS
@@ -120,6 +121,8 @@ set(LINUX_SYSTEM_DLLS
   libodbc.so*
   libpq.so*
   libEGL.so*
+  libxkbcommon*
+  libxcb-*
   )
   # libexpat.so.*
   # libfontconfig.so*

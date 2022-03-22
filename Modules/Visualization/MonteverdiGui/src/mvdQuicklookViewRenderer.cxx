@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -105,20 +105,18 @@ AbstractImageViewRenderer::RenderingContext* QuicklookViewRenderer::NewRendering
 /*******************************************************************************/
 void QuicklookViewRenderer::virtual_SetProjection()
 {
-  SetWktAndKwl();
+  SetWktAndImd();
 }
 
 /*******************************************************************************/
 void QuicklookViewRenderer::virtual_UpdateProjection()
 {
-  SetWktAndKwl();
+  SetWktAndImd();
 }
 
 /*******************************************************************************/
-void QuicklookViewRenderer::SetWktAndKwl()
+void QuicklookViewRenderer::SetWktAndImd()
 {
-// qDebug() << this << "::SetWktAndKwl()";
-
 #if DISABLE_QUICKLOOK_VIEW
   return;
 #endif
@@ -132,7 +130,7 @@ void QuicklookViewRenderer::SetWktAndKwl()
 
   assert(!referenceGlImageActor.IsNull());
 
-  m_GlRoiActor->SetKwl(referenceGlImageActor->GetKwl());
+  m_GlRoiActor->SetImd(referenceGlImageActor->GetImd());
   m_GlRoiActor->SetWkt(referenceGlImageActor->GetWkt());
 }
 

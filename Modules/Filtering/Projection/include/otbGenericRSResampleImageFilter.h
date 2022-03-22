@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -166,31 +166,30 @@ public:
     return m_Transform->GetInputProjectionRef();
   }
 
-  /** Set/Get Input Keywordlist
-   * \deprecated
+  /** Set/Get Input ImageMetadata
    */
-  void SetInputKeywordList(const ImageKeywordlist& kwl)
+  void SetInputImageMetadata(const ImageMetadata* imd)
   {
-    m_Transform->SetOutputKeywordList(kwl);
-    this->Modified();
-  }
-  const ImageKeywordlist GetInputKeywordList()
-  {
-    return m_Transform->GetOutputKeywordList();
-  }
-
-  /** Set/Get output Keywordlist
-   * \deprecated
-   */
-  void SetOutputKeywordList(const ImageKeywordlist& kwl)
-  {
-    m_Transform->SetInputKeywordList(kwl);
+    m_Transform->SetOutputImageMetadata(imd);
     this->Modified();
   }
 
-  const ImageKeywordlist GetOutputKeywordList()
+  const ImageMetadata* GetInputImageMetadata()
   {
-    return m_Transform->GetInputKeywordList();
+    return m_Transform->GetOutputImageMetadata();
+  }
+
+  /** Set/Get Output ImageMetadata
+   */
+  void SetOutputImageMetadata(const ImageMetadata* imd)
+  {
+    m_Transform->SetInputImageMetadata(imd);
+    this->Modified();
+  }
+
+  const ImageMetadata* GetOutputImageMetadata()
+  {
+    return m_Transform->GetInputImageMetadata();
   }
 
   /** Useful to set the output parameters from an existing image*/

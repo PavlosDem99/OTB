@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -24,7 +24,6 @@
 
 #include "otbPersistentImageToOGRDataFilter.h"
 #include "otbStopwatch.h"
-#include <boost/foreach.hpp>
 #include <stdio.h>
 #include "otbMacro.h"
 #include "otbOGRHelpers.h"

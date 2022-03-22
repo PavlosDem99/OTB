@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -33,30 +33,36 @@
 
 namespace otb
 {
-SarImageMetadataInterfaceFactory::SarImageMetadataInterfacePointerType SarImageMetadataInterfaceFactory::CreateIMI(const MetaDataDictionaryType& dict)
+
+SarImageMetadataInterfaceFactory::SarImageMetadataInterfacePointerType
+SarImageMetadataInterfaceFactory
+::CreateIMI(ImageMetadata & imd, const MetadataSupplierInterface & mds)
 {
   RegisterBuiltInFactories();
 
-  std::list<SarImageMetadataInterfacePointerType> possibleIMI;
-  std::list<itk::LightObject::Pointer>            allobjects = itk::ObjectFactoryBase::CreateAllInstance("SarImageMetadataInterface");
-  for (std::list<itk::LightObject::Pointer>::iterator i = allobjects.begin(); i != allobjects.end(); ++i)
+  auto allObjects     = itk::ObjectFactoryBase::CreateAllInstance("SarImageMetadataInterface");
+
+  for (auto i = allObjects.begin(); i != allObjects.end(); ++i)
   {
     SarImageMetadataInterface* io = dynamic_cast<SarImageMetadataInterface*>(i->GetPointer());
     if (io)
     {
-      possibleIMI.push_back(io);
+      // the static part of ImageMetadata is already filled
+      io->SetMetadataSupplierInterface(mds);
+      try
+      {
+        io->Parse(imd);
+        return io;
+      }
+      catch(MissingMetadataException& e)
+      {
+        // silent catch of MissingMetadataException
+        // just means that this IMI can't parse the file
+      }
     }
     else
     {
       itkGenericExceptionMacro(<< "Error SarImageMetadataInterface factory did not return an SarImageMetadataInterface: " << (*i)->GetNameOfClass());
-    }
-  }
-  for (std::list<SarImageMetadataInterfacePointerType>::iterator k = possibleIMI.begin(); k != possibleIMI.end(); ++k)
-  {
-    (*k)->SetMetaDataDictionary(dict);
-    if ((*k)->CanRead())
-    {
-      return *k;
     }
   }
 

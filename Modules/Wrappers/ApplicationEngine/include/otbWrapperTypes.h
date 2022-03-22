@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -58,6 +58,8 @@ typedef enum {
   ParameterType_OutputProcessXML,
   ParameterType_InputProcessXML,
   ParameterType_Bool,
+  ParameterType_Field,
+  ParameterType_Band,
   ParameterType_MAX__
 } ParameterType;
 
@@ -85,7 +87,11 @@ constexpr char const* parameterTypesStrings[] = {"Int",
                                                  "RAM",
                                                  "OutputProcessXML",
                                                  "InputProcessXML",
-                                                 "Bool"};
+                                                 "Bool",
+                                                 "Field",
+                                                 "Band",
+
+};
 static_assert(std::extent<decltype(parameterTypesStrings)>::value == ParameterType_MAX__, "Wrong number of parameters in parameterTypesStrings");
 }
 

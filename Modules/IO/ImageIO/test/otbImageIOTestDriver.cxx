@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -151,5 +151,4 @@ void RegisterTests()
   REGISTER_TEST(otbImageFileReaderOptBandTest);
   REGISTER_TEST(otbImageFileWriterOptBandTest);
   REGISTER_TEST(otbMultiImageFileWriterTest);
-  REGISTER_TEST(otbWriteGeomFile);
 }

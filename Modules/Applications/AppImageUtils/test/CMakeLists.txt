@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -29,14 +29,6 @@ add_executable(otbAppImageUtilsTestDriver ${OTBAppImageUtilsTests})
 target_link_libraries(otbAppImageUtilsTestDriver ${OTBAppImageUtils-Test_LIBRARIES})
 otb_module_target_label(otbAppImageUtilsTestDriver)
 
-#----------- DownloadSRTMTiles TESTS ----------------
-otb_test_application(NAME apTuUtDownloadSRTMTiles
-                     APP  DownloadSRTMTiles
-                     OPTIONS -il LARGEINPUT{QUICKBIRD/TOULOUSE/000000128955_01_P001_MUL/02APR01105228-M1BS-000000128955_01_P001.TIF}
-                             -mode list
-                             -tiledir ${INPUTDATA}/DEM/srtm_directory
-                     )
-
 #----------- DynamicConvert TESTS ------------
 otb_test_application(NAME apTvUtDynamicConvertBasic
                      APP DynamicConvert
@@ -61,9 +53,9 @@ otb_test_application(NAME apTvUtDynamicConvertExtendedFilename_readerGEOM
                      APP  DynamicConvert
                      OPTIONS -in ${INPUTDATA}/ToulouseExtract_WithGeom.tif?&geom=${INPUTDATA}/ToulouseExtract_ModifiedGeom.geom
                              -out ${TEMP}/apTvUtGeomExtendedFilename.tif
-                     VALID   --compare-ascii ${EPSILON_7}
-                             ${INPUTDATA}/ToulouseExtract_ModifiedGeom.geom
-                             ${TEMP}/apTvUtGeomExtendedFilename.geom)
+                     VALID   --compare-metadata ${NOTOL}
+                             ${INPUTDATA}/ToulouseExtract_ModifiedMetadata.tif
+                             ${TEMP}/apTvUtGeomExtendedFilename.tif)
 
 otb_test_application(NAME apTvUtDynamicConvertLog2
                      APP DynamicConvert
@@ -224,7 +216,6 @@ foreach( file ${IMG} )
   otb_test_application(NAME  apTuReadImageInfoTest_${current_testname}
                      APP  ReadImageInfo
                      OPTIONS -in ${file}
-                     -outkwl ${TEMP}/apTvUtReadImageInfoTest_${current_testname}.geom
                      #No baseline, just check that the process finished well
                      )
 endforeach()
@@ -272,7 +263,7 @@ otb_test_application(NAME apTvUtQuicklookSpot5
                              -rsy 200
                              -sr 2
                      VALID   --compare-image ${NOTOL}
-                             ${BASELINE}/apTvUtQuicklookSpot5.tif
+                             ${BASELINE}/apTvUtQuicklookSpot5.img
                              ${TEMP}/apTvUtQuicklookSpot5.img
                      )
 

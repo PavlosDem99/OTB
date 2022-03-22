@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -27,8 +27,6 @@
 #include "otbVectorDataToLabelImageFilter.h"
 #include "otbOGRIOHelper.h"
 #include "otbGdalDataTypeBridge.h"
-#include "otbImageMetadataInterfaceBase.h"
-#include "otbImageMetadataInterfaceFactory.h"
 #include "otbImage.h"
 
 namespace otb
@@ -101,13 +99,13 @@ void VectorDataToLabelImageFilter<TVectorData, TOutputImage>::SetOutputOrigin(co
 }
 
 template <class TVectorData, class TOutputImage>
-void VectorDataToLabelImageFilter<TVectorData, TOutputImage>::SetOutputParametersFromImage(const ImageBaseType* src)
+template <class ImagePointerType>
+void VectorDataToLabelImageFilter<TVectorData, TOutputImage>::SetOutputParametersFromImage(const ImagePointerType src)
 {
   this->SetOutputOrigin(src->GetOrigin());
-  this->SetOutputSpacing(internal::GetSignedSpacing(src));
+  this->SetOutputSpacing(src->GetSignedSpacing());
   this->SetOutputSize(src->GetLargestPossibleRegion().GetSize());
-  ImageMetadataInterfaceBase::Pointer imi = ImageMetadataInterfaceFactory::CreateIMI(src->GetMetaDataDictionary());
-  this->SetOutputProjectionRef(imi->GetProjectionRef());
+  this->SetOutputProjectionRef(src->GetProjectionRef());
 }
 
 template <class TVectorData, class TOutputImage>

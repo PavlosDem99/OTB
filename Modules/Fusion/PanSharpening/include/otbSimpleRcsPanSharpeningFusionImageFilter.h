@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -209,7 +209,7 @@ private:
     }
 
   private:
-    /** No data flags and values for APN image */
+    /** No data flags and values for PAN image */
     bool                                      m_NoDataValuePanAvailable;
     typename TPanImageType::InternalPixelType m_NoDataValuePan;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -27,7 +27,8 @@
 #include "otbGenericMapProjection.h"
 #include "otbSpatialReference.h"
 #include "otbCompositeTransform.h"
-#include "otbInverseSensorModel.h"
+#include "otbRPCInverseTransform.h"
+#include "otbMetaDataKey.h"
 
 int otbCompositeTransform(int argc, char* argv[])
 {
@@ -54,13 +55,13 @@ int otbCompositeTransform(int argc, char* argv[])
   // UTM31N
   mapProjection->SetWkt(otb::SpatialReference::FromEPSG(32631).ToWkt());
 
-  typedef otb::InverseSensorModel<double> SensorModelType;
+  typedef otb::RPCInverseTransform<double, 2, 2> SensorModelType;
   SensorModelType::Pointer                sensorModel = SensorModelType::New();
-  sensorModel->SetImageGeometry(reader->GetOutput()->GetImageKeywordlist());
+  sensorModel->SetMetadata(reader->GetOutput()->GetImageMetadata());
 
   if (sensorModel->IsValidSensorModel() == false)
   {
-    std::cout << "Invalid Model pointer m_Model == NULL!\n The ossim keywordlist is invalid!" << std::endl;
+    std::cout << "Invalid Model pointer m_Model == NULL!\n The image metadata is invalid!" << std::endl;
     return EXIT_FAILURE;
   }
 

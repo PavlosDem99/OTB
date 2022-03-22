@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -33,7 +33,6 @@
 #else
 #include <boost/test/unit_test.hpp>
 #endif
-#include <boost/foreach.hpp>
 #include "otb_boost_string_header.h"
 #include "itksys/SystemTools.hxx"
 #include "otbOGRDataSourceWrapper.h"
@@ -672,7 +671,7 @@ BOOST_AUTO_TEST_CASE(Add_n_Del_Fields)
     ogr::FieldDefn f4(*defn.GetFieldDefn(4));
     BOOST_CHECK_EQUAL(f4, k_f5);
   }
-  // todo: add reoder tests
+  // todo: add reorder tests
 }
 
 BOOST_AUTO_TEST_CASE(Add_n_Read_Fields)
@@ -821,7 +820,7 @@ BOOST_AUTO_TEST_CASE(Add_n_Read_Geometries)
   BOOST_CHECK_EQUAL(l.GetFeatureCount(false), 20);
 
   int u = -10;
-  BOOST_FOREACH (ogr::Feature f, l)
+  for (ogr::Feature f : l)
   {
     const OGRPoint         ref(u, u);
     ogr::UniqueGeometryPtr p = f.StealGeometry();

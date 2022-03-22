@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -171,7 +171,7 @@ bool FilenameDragAndDropEventFilter::DropEvent(QObject* watched, QDropEvent* e)
       {
         filenames.push_back(it->toLocalFile());
 
-        emit FilenameDropped(filenames.back());
+        Q_EMIT FilenameDropped(filenames.back());
       }
     }
     else
@@ -180,7 +180,7 @@ bool FilenameDragAndDropEventFilter::DropEvent(QObject* watched, QDropEvent* e)
     }
   }
 
-  emit FilenamesDropped(filenames);
+  Q_EMIT FilenamesDropped(filenames);
 
   //
   // Eatup event.

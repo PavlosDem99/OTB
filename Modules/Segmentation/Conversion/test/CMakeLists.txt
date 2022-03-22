@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -157,7 +157,7 @@ otb_add_test(NAME bfTvVectorDataRasterizeFilterSHP COMMAND otbConversionTestDriv
   #${BASELINE}/bfLabelImageRegionPruningFilterClusteredOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionPruningFilterClusteredOutput_SPOT5.tif
   #otbLabelImageRegionPruningFilter
-  #${INPUTDATA}/SPOT5_EXTRACTS/Arcachon/Arcachon_extrait_3852_3319_546_542.tif
+  #${INPUTDATA}/SPOT5_EXTRACTS/Arcachon/IMAGERY.TIF
   #${TEMP}/bfLabelImageRegionPruningFilterSpectralOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionPruningFilterLabelOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionPruningFilterMergeOutput_SPOT5.tif
@@ -187,7 +187,7 @@ otb_add_test(NAME bfTvVectorDataRasterizeFilterSHP COMMAND otbConversionTestDriv
   #${BASELINE}/bfLabelImageRegionMergingFilterClusteredOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionMergingFilterClusteredOutput_SPOT5.tif
   #otbLabelImageRegionMergingFilter
-  #${INPUTDATA}/SPOT5_EXTRACTS/Arcachon/Arcachon_extrait_3852_3319_546_542.tif
+  #${INPUTDATA}/SPOT5_EXTRACTS/Arcachon/IMAGERY.TIF
   #${TEMP}/bfLabelImageRegionMergingFilterSpectralOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionMergingFilterLabelOutput_SPOT5.tif
   #${TEMP}/bfLabelImageRegionMergingFilterMergeOutput_SPOT5.tif

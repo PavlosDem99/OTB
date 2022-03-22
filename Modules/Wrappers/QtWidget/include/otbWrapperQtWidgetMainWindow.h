@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -55,11 +55,11 @@ public:
 
   void closeEvent(QCloseEvent* event) override;
 
-signals:
+Q_SIGNALS:
   void ExecuteAndWriteOutput();
   void Stop();
 
-public slots:
+public Q_SLOTS:
   void UnhandledException(QString message);
   void UpdateMessageAfterApplicationReady(bool val);
   void UpdateMessageAfterExecution(int status);

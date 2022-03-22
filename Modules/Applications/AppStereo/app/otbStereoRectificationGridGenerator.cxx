@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -303,7 +303,7 @@ private:
       m_DEMToImageGenerator->SetOutputSize(size);
       m_DEMToImageGenerator->SetOutputSpacing(spacing);
       m_DEMToImageGenerator->SetOutputProjectionRef(GetParameterImage("io.inleft")->GetProjectionRef());
-      m_DEMToImageGenerator->SetOutputKeywordList(GetParameterImage("io.inleft")->GetImageKeywordlist());
+      m_DEMToImageGenerator->SetOutputImageMetadata(&(GetParameterImage("io.inleft")->GetImageMetadata()));
       m_DEMToImageGenerator->AboveEllipsoidOn();
 
       m_StatisticsFilter->SetInput(m_DEMToImageGenerator->GetOutput());
@@ -311,7 +311,7 @@ private:
       AddProcess(m_StatisticsFilter->GetStreamer(), "Computing DEM statistics ...");
       m_StatisticsFilter->Update();
 
-      otb::DEMHandler::Instance()->SetDefaultHeightAboveEllipsoid(m_StatisticsFilter->GetMean());
+      otb::DEMHandler::GetInstance().SetDefaultHeightAboveEllipsoid(m_StatisticsFilter->GetMean());
 
       EnableParameter("epi.elevation.avgdem.value");
       SetParameterFloat("epi.elevation.avgdem.value", m_StatisticsFilter->GetMean());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -48,6 +48,9 @@ void PerBandVectorImageFilter<TInputImage, TOutputImage, TFilter>::GenerateOutpu
     m_Filter->UpdateOutputInformation();
     this->GetOutput()->CopyInformation(m_Filter->GetOutput(m_OutputIndex));
     this->GetOutput()->SetNumberOfComponentsPerPixel(this->GetInput()->GetNumberOfComponentsPerPixel());
+    
+    // Override default metadata copying behavior and copy all metadata from input to output.
+    this->GetOutput()->SetImageMetadata(this->GetInput()->GetImageMetadata());
   }
 }
 

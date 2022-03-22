@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -34,7 +34,6 @@
 #include "otbImage.h"
 #include "otbSIXSTraits.h"
 #include "otbMath.h"
-#include "otbOpticalImageMetadataInterfaceFactory.h"
 
 namespace otb
 {
@@ -83,25 +82,41 @@ void SurfaceAdjacencyEffectCorrectionSchemeFilter<TInputImage, TOutputImage>::Up
   }
 
 
+
   // Acquisition parameters
-  if (!m_IsSetAcquiCorrectionParameters) // Get info from image metadata interface
+  if (!m_IsSetAcquiCorrectionParameters) // Get info from image metadata
   {
-    MetaDataDictionaryType                 dict                   = this->GetInput()->GetMetaDataDictionary();
-    OpticalImageMetadataInterface::Pointer imageMetadataInterface = OpticalImageMetadataInterfaceFactory::CreateIMI(dict);
+    const auto & metadata = this->GetInput()->GetImageMetadata();
 
     m_AcquiCorrectionParameters = AcquiCorrectionParametersType::New();
 
-    m_AcquiCorrectionParameters->SetSolarZenithalAngle(90. - imageMetadataInterface->GetSunElevation());
-    m_AcquiCorrectionParameters->SetSolarAzimutalAngle(imageMetadataInterface->GetSunAzimuth());
-    m_AcquiCorrectionParameters->SetViewingZenithalAngle(90. - imageMetadataInterface->GetSatElevation());
-    m_AcquiCorrectionParameters->SetViewingAzimutalAngle(imageMetadataInterface->GetSatAzimuth());
+    m_AcquiCorrectionParameters->SetSolarZenithalAngle(90. - metadata[MDNum::SunElevation]);
+    m_AcquiCorrectionParameters->SetSolarAzimutalAngle(metadata[MDNum::SunAzimuth]);
+    m_AcquiCorrectionParameters->SetViewingZenithalAngle(90. - metadata[MDNum::SatElevation]);
+    m_AcquiCorrectionParameters->SetViewingAzimutalAngle(metadata[MDNum::SatAzimuth]);
 
-    m_AcquiCorrectionParameters->SetDay(imageMetadataInterface->GetDay());
-    m_AcquiCorrectionParameters->SetMonth(imageMetadataInterface->GetMonth());
+    m_AcquiCorrectionParameters->SetDay(metadata[MDTime::AcquisitionDate].GetDay());
+    m_AcquiCorrectionParameters->SetMonth(metadata[MDTime::AcquisitionDate].GetMonth());
 
-    if (imageMetadataInterface->GetSpectralSensitivity()->Capacity() > 0)
+
+    if (metadata.HasBandMetadata(MDL1D::SpectralSensitivity))
     {
-      m_AcquiCorrectionParameters->SetWavelengthSpectralBand(imageMetadataInterface->GetSpectralSensitivity());
+      auto spectralSensitivity = AcquiCorrectionParametersType::InternalWavelengthSpectralBandVectorType::New();
+      for (const auto & band : metadata.Bands)
+      {
+        const auto & spectralSensitivityLUT = band[MDL1D::SpectralSensitivity];
+        const auto & axis = spectralSensitivityLUT.Axis[0];
+        auto filterFunction = FilterFunctionValues::New();
+        // LUT1D stores a double vector whereas FilterFunctionValues stores a float vector
+        std::vector<float> vec(spectralSensitivityLUT.Array.begin(), spectralSensitivityLUT.Array.end());
+        filterFunction->SetFilterFunctionValues(vec);
+        filterFunction->SetMinSpectralValue(axis.Origin);
+        filterFunction->SetMaxSpectralValue(axis.Origin + axis.Spacing * (axis.Size-1));
+        filterFunction->SetUserStep(axis.Spacing);
+        spectralSensitivity->PushBack(filterFunction);
+      }
+
+      m_AcquiCorrectionParameters->SetWavelengthSpectralBand(spectralSensitivity);
     }
     else
     {
@@ -114,6 +129,7 @@ void SurfaceAdjacencyEffectCorrectionSchemeFilter<TInputImage, TOutputImage>::Up
       }
       m_AcquiCorrectionParameters->SetWavelengthSpectralBand(spectralDummy);
     }
+
   }
 
   m_AtmosphericRadiativeTerms = CorrectionParametersToRadiativeTermsType::Compute(m_AtmoCorrectionParameters, m_AcquiCorrectionParameters);

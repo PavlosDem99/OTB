@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -22,8 +22,8 @@
 #define otbWrapperMetaDataHelper_h
 
 #include "otbMetaDataKey.h"
-#include "otbImageKeywordlist.h"
 #include "otbVectorDataKeywordlist.h"
+#include "otbGeometryMetadata.h"
 #include "itkMetaDataDictionary.h"
 #include "OTBApplicationEngineExport.h"
 
@@ -67,14 +67,11 @@ OTBApplicationEngine_EXPORT void SetInt(itk::MetaDataDictionary& dict, const std
 OTBApplicationEngine_EXPORT double GetDouble(const itk::MetaDataDictionary& dict, const std::string& key);
 OTBApplicationEngine_EXPORT void SetDouble(itk::MetaDataDictionary& dict, const std::string& key, double val);
 
-OTBApplicationEngine_EXPORT otb::OTB_GCP GetGCP(const itk::MetaDataDictionary& dict, const std::string& key);
-OTBApplicationEngine_EXPORT void SetGCP(itk::MetaDataDictionary& dict, const std::string& key, const otb::OTB_GCP& val);
+OTBApplicationEngine_EXPORT otb::GCP GetGCP(const itk::MetaDataDictionary& dict, const std::string& key);
+OTBApplicationEngine_EXPORT void SetGCP(itk::MetaDataDictionary& dict, const std::string& key, const otb::GCP& val);
 
 OTBApplicationEngine_EXPORT otb::MetaDataKey::VectorType GetVector(const itk::MetaDataDictionary& dict, const std::string& key);
 OTBApplicationEngine_EXPORT void SetVector(itk::MetaDataDictionary& dict, const std::string& key, const otb::MetaDataKey::VectorType& val);
-
-OTBApplicationEngine_EXPORT otb::ImageKeywordlist GetImageKWL(const itk::MetaDataDictionary& dict, const std::string& key);
-OTBApplicationEngine_EXPORT void SetImageKWL(itk::MetaDataDictionary& dict, const std::string& key, const otb::ImageKeywordlist& val);
 
 OTBApplicationEngine_EXPORT otb::VectorDataKeywordlist GetVectorDataKWL(const itk::MetaDataDictionary& dict, const std::string& key);
 OTBApplicationEngine_EXPORT void SetVectorDataKWL(itk::MetaDataDictionary& dict, const std::string& key, const otb::VectorDataKeywordlist& val);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -82,7 +82,8 @@ void FastICAImageFilter<TInputImage, TOutputImage, TDirectionOfTransformation>::
     unsigned int theOutputDimension = 0;
     if (m_GivenTransformationMatrix)
     {
-      theOutputDimension = m_TransformationMatrix.Rows() >= m_TransformationMatrix.Cols() ? m_TransformationMatrix.Rows() : m_TransformationMatrix.Cols();
+      const auto & pcaMatrix = m_PCAFilter->GetTransformationMatrix();
+      theOutputDimension = pcaMatrix.Rows() >= pcaMatrix.Cols() ? pcaMatrix.Rows() : pcaMatrix.Cols();
     }
     else
     {

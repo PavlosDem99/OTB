@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -23,608 +23,233 @@
 
 #include "otbStringUtils.h"
 #include "itkMetaDataObject.h"
-#include "otbImageKeywordlist.h"
+
+#include "itksys/SystemTools.hxx"
+#include "otbStringUtilities.h"
 
 namespace otb
 {
 
-IkonosImageMetadataInterface::IkonosImageMetadataInterface()
+namespace
 {
-}
-
-bool IkonosImageMetadataInterface::CanRead() const
-{
-  std::string sensorID = GetSensorID();
-  if (sensorID.find("IKONOS-2") != std::string::npos)
-    return true;
-  else
-    return false;
-}
-
-IkonosImageMetadataInterface::VariableLengthVectorType IkonosImageMetadataInterface::GetSolarIrradiance() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
+  template<class T>
+  bool ContainsIkonosMetadata(const T & associativeContainer)
   {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
+    const auto pastTheEnd = associativeContainer.end();
+    return associativeContainer.find("productionDate") != pastTheEnd
+        && associativeContainer.find("sensorID") != pastTheEnd
+        && associativeContainer.find("nominalCollectionAzimuth") != pastTheEnd
+        && associativeContainer.find("nominalCollectionElevation") != pastTheEnd
+        && associativeContainer.find("sunAzimuth")!= pastTheEnd
+        && associativeContainer.find("sunElevation") != pastTheEnd
+        && associativeContainer.find("acquisitionDate") != pastTheEnd;
   }
 
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
+  // Read Ikonos metadata from a geom file
+  template<class T>
+  void ParseGeomFile(const MetadataSupplierInterface & mds, 
+                         T& metadataAssociativeContainer)
   {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
+    metadataAssociativeContainer["productionDate"] = mds.GetAs<std::string>("support_data.production_date");
+    metadataAssociativeContainer["sensorID"] = mds.GetAs<std::string>("support_data.sensor");
+    metadataAssociativeContainer["nominalCollectionAzimuth"] = mds.GetAs<std::string>("support_data.nominal_collection_azimuth_angle");
+    metadataAssociativeContainer["nominalCollectionElevation"] = mds.GetAs<std::string>("support_data.nominal_collection_elevation_angle");
+    metadataAssociativeContainer["sunAzimuth"] = mds.GetAs<std::string>("support_data.azimuth_angle");
+    metadataAssociativeContainer["sunElevation"] = mds.GetAs<std::string>("support_data.elevation_angle");
+    metadataAssociativeContainer["acquisitionDate"] = mds.GetAs<std::string>("support_data.acquisition_date");
+    metadataAssociativeContainer["acquisitionTime"] = mds.GetAs<std::string>("support_data.acquisition_time");
+    metadataAssociativeContainer["bandName"] = mds.GetAs<std::string>("support_data.band_name");
   }
 
-  VariableLengthVectorType outputValuesVariableLengthVector;
-  outputValuesVariableLengthVector.SetSize(1);
-
-  if (!imageKeywordlist.HasKey("support_data.band_name"))
+  template<class T>
+  void ParseMetadataFile(const std::string & metadataFilename, 
+                         T& metadataAssociativeContainer)
   {
-    outputValuesVariableLengthVector[0] = -1;
-    return outputValuesVariableLengthVector;
+
+    std::ifstream file(metadataFilename);
+
+    if (file.is_open()) 
+    {
+      std::string line;
+
+      auto fetchMetadata = [&metadataAssociativeContainer, &line]
+                               (const std::string & key,
+                                const std::string & metadataPath,
+                                int pos = 0,
+                                const std::string & separator = " ")
+      {
+        if (starts_with(line, metadataPath))
+        {
+          std::string metadata = line.substr(metadataPath.size(), line.size()-metadataPath.size());
+          
+          // Remove carriage return and new line characters.
+          metadata.erase(std::remove(metadata.begin(), metadata.end(), '\r'), metadata.end());
+          metadata.erase(std::remove(metadata.begin(), metadata.end(), '\n'), metadata.end());
+
+          std::vector<std::string> metadataParts;
+          boost::split(metadataParts,
+                       metadata,
+                       boost::is_any_of(separator));
+
+          metadataAssociativeContainer[key] = metadataParts[pos];
+        }
+      };
+
+      while (std::getline(file, line)) 
+      {
+        fetchMetadata("productionDate", "Creation Date: ");
+        fetchMetadata("sensorID", "Sensor: ");
+        fetchMetadata("nominalCollectionAzimuth", "Nominal Collection Azimuth: ");
+        fetchMetadata("nominalCollectionElevation", "Nominal Collection Elevation: ");
+        fetchMetadata("sunAzimuth", "Sun Angle Azimuth: ");
+        fetchMetadata("sunElevation", "Sun Angle Elevation: ");
+        fetchMetadata("acquisitionDate", "Acquisition Date/Time: ");
+        fetchMetadata("acquisitionTime", "Acquisition Date/Time: ", 1);
+      }
+    }
+    else
+    {
+      otbGenericExceptionMacro(MissingMetadataException, 
+        << "Cannot open the Ikonos metadata file: " << metadataFilename);
+    }
+
   }
 
-  std::string keywordString = imageKeywordlist.GetMetadataByKey("support_data.band_name");
-
-  // values from geoeye
-  // TODO are these the correct values ????
-  if (keywordString == "Pan")
+  template<class T>
+  void ParseHeaderFile(const std::string & hdrFilename, 
+                         T& metadataAssociativeContainer)
   {
-    outputValuesVariableLengthVector[0] = 1375.8;
-  }
-  else if (keywordString == "Blue")
-  {
-    outputValuesVariableLengthVector[0] = 1930.9;
-  }
-  else if (keywordString == "Green")
-  {
-    outputValuesVariableLengthVector[0] = 1854.8;
-  }
-  else if (keywordString == "Red")
-  {
-    outputValuesVariableLengthVector[0] = 1556.5;
-  }
-  else if (keywordString == "NIR")
-  {
-    outputValuesVariableLengthVector[0] = 1156.9;
-  }
 
-  return outputValuesVariableLengthVector;
-}
+    std::ifstream file(hdrFilename);
 
-int IkonosImageMetadataInterface::GetDay() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
+    if (file.is_open()) 
+    {
+      std::string line;
 
-  ImageKeywordlistType imageKeywordlist;
+      auto fetchMetadata = [&metadataAssociativeContainer, &line]
+                               (const std::string & key,
+                                const std::string & metadataPath,
+                                int pos = 0,
+                                const std::string & separator = " ")
+      {
+        if (starts_with(line, metadataPath))
+        {
+          std::string metadata = line.substr(metadataPath.size(), line.size()-metadataPath.size());
+          
+          // Remove carriage return and new line characters.
+          metadata.erase(std::remove(metadata.begin(), metadata.end(), '\r'), metadata.end());
+          metadata.erase(std::remove(metadata.begin(), metadata.end(), '\n'), metadata.end());
 
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.acquisition_date"))
-  {
-    return -1;
-  }
+          std::vector<std::string> metadataParts;
+          boost::split(metadataParts,
+                       metadata,
+                       boost::is_any_of(separator));
 
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.acquisition_date");
-  std::vector<std::string> outputValues;
+          metadataAssociativeContainer[key] = metadataParts[pos];
+        }
+      };
 
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-"));
+      while (std::getline(file, line)) 
+      {
+        fetchMetadata("bandName", "Band: ");
+      }
+    }
+    else
+    {
+      otbGenericExceptionMacro(MissingMetadataException, 
+        << "Cannot open the Ikonos header file: " << hdrFilename);
+    }
 
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Day");
-
-  int value = atoi(outputValues[2].c_str());
-  return value;
-}
-
-int IkonosImageMetadataInterface::GetMonth() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
   }
 
-  ImageKeywordlistType imageKeywordlist;
+  std::unordered_map<std::string, double> ikonosSolarIrradiance = {
+    {"Pan", 1375.8},
+    {"Blue", 1930.9},
+    {"Green", 1854.8},
+    {"Red", 1556.5},
+    {"NIR", 1156.9}};
 
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.acquisition_date"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.acquisition_date");
-  std::vector<std::string> outputValues;
-
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-"));
-
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Month");
-
-  int value = atoi(outputValues[1].c_str());
-  return value;
-}
-
-
-int IkonosImageMetadataInterface::GetYear() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.acquisition_date"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.acquisition_date");
-  std::vector<std::string> outputValues;
-
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-"));
-
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Year");
-
-  int value = atoi(outputValues[0].c_str());
-  return value;
-}
-
-
-int IkonosImageMetadataInterface::GetHour() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.acquisition_time"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.acquisition_time");
-  std::vector<std::string> outputValues;
-
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-"));
-
-  if (outputValues.size() < 2)
-    itkExceptionMacro(<< "Invalid Hour");
-
-  int value = atoi(outputValues[0].c_str());
-  return value;
-}
-
-int IkonosImageMetadataInterface::GetMinute() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.acquisition_time"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.acquisition_time");
-  std::vector<std::string> outputValues;
-
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-"));
-
-  if (outputValues.size() < 2)
-    itkExceptionMacro(<< "Invalid Minute");
-
-  int value = atoi(outputValues[1].c_str());
-  return value;
-}
-
-int IkonosImageMetadataInterface::GetProductionDay() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.production_date"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.production_date");
-  std::vector<std::string> outputValues;
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-/"));
-
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Day");
-  // MM/DD/YY
-  int value = atoi(outputValues[1].c_str());
-  return value;
-}
-
-int IkonosImageMetadataInterface::GetProductionMonth() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.production_date"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.production_date");
-  std::vector<std::string> outputValues;
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-/"));
-
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Month");
-  // MM/DD/YY
-  int value = atoi(outputValues[0].c_str());
-  return value;
-}
-
-int IkonosImageMetadataInterface::GetProductionYear() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.production_date"))
-  {
-    return -1;
-  }
-
-  std::string              valueString = imageKeywordlist.GetMetadataByKey("support_data.production_date");
-  std::vector<std::string> outputValues;
-  boost::split(outputValues, valueString, boost::is_any_of(" T:-/"));
-
-  if (outputValues.size() <= 2)
-    itkExceptionMacro(<< "Invalid Year");
-  // MM/DD/YY
-  int year = atoi(outputValues[2].c_str());
-  if (year == 99)
-    year += 1900;
-  else
-    year += 2000;
-  return year;
-}
-
-IkonosImageMetadataInterface::VariableLengthVectorType IkonosImageMetadataInterface::GetPhysicalBias() const
-{
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  VariableLengthVectorType outputValuesVariableLengthVector;
-  outputValuesVariableLengthVector.SetSize(GetNumberOfBands());
-  outputValuesVariableLengthVector.Fill(0.0);
-
-  return outputValuesVariableLengthVector;
-}
-
-IkonosImageMetadataInterface::VariableLengthVectorType IkonosImageMetadataInterface::GetPhysicalGain() const
-{
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  int  productionYear  = this->GetProductionYear();
-  int  productionMonth = this->GetProductionMonth();
-  int  productionDay   = this->GetProductionDay();
-  bool isPost20010122  = false;
-  if ((productionDay + 100 * productionMonth + 10000 * productionYear) >= 20010122)
-  {
-    isPost20010122 = true;
-  }
 
   // Value computed from
   // http://www.geoeye.com/CorpSite/assets/docs/technical-papers/2009/IKONOS_Esun_Calculations.pdf
   // to get the equivalent of the SPOT alpha
-  VariableLengthVectorType gain;
-  gain.SetSize(5);
-  if (isPost20010122)
-  {
-    gain[0] = 6.48830; // Pan
-    gain[1] = 5.19064; // Blue
-    gain[2] = 6.44122; // Green
-    gain[3] = 6.24442; // Red
-    gain[4] = 8.04222; // NIR
-  }
-  else
-  {
-    gain[0] = 6.48830; // Pan
-    gain[1] = 4.51329; // Blue
-    gain[2] = 5.75014; // Green
-    gain[3] = 5.52720; // Red
-    gain[4] = 7.11684; // NIR
-  }
+  std::unordered_map<std::string, double> ikonosPhysicalGainPre20010122 = {
+    {"Pan", 6.48830},
+    {"Blue", 4.51329},
+    {"Green", 5.75014},
+    {"Red", 5.52720},
+    {"NIR", 7.11684}};
 
-  std::vector<std::string> bandName = GetBandName();
+  std::unordered_map<std::string, double> ikonosPhysicalGainPost20010122 = {
+    {"Pan", 6.48830},
+    {"Blue", 5.19064},
+    {"Green", 6.44122},
+    {"Red", 6.24442},
+    {"NIR", 8.04222}};
 
-  VariableLengthVectorType outputValuesVariableLengthVector;
-  unsigned int             numBands = GetNumberOfBands();
-
-  /** Tests if the number of bands in metadata are the same as bandName size*/
-  if (numBands != bandName.size())
-  {
-    itkExceptionMacro(<< "Invalid number of bands...");
-  }
-
-  outputValuesVariableLengthVector.SetSize(numBands);
-  for (unsigned int i = 0; i < numBands; ++i)
-  {
-    if (bandName[i].find("Pan") != std::string::npos)
-      outputValuesVariableLengthVector[i] = gain[0];
-    if (bandName[i].find("Blue") != std::string::npos)
-      outputValuesVariableLengthVector[i] = gain[1];
-    if (bandName[i].find("Green") != std::string::npos)
-      outputValuesVariableLengthVector[i] = gain[2];
-    if (bandName[i].find("Red") != std::string::npos)
-      outputValuesVariableLengthVector[i] = gain[3];
-    if (bandName[i].find("NIR") != std::string::npos)
-      outputValuesVariableLengthVector[i] = gain[4];
-  }
-
-  return outputValuesVariableLengthVector;
 }
 
-double IkonosImageMetadataInterface::GetSatElevation() const
+
+void IkonosImageMetadataInterface::FetchProductionDate(const std::string & productionDate, ImageMetadata& imd)
 {
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.nominal_collection_elevation_angle"))
-  {
-    return 0;
-  }
-
-  std::string valueString = imageKeywordlist.GetMetadataByKey("support_data.nominal_collection_elevation_angle");
-  double      value       = atof(valueString.c_str());
-  return value;
+  // Producion date format: MM/DD/YY
+  imd.Add(MDTime::ProductionDate,MetaData::ReadFormattedDate(productionDate, "%m/%d/%y"));
 }
 
-double IkonosImageMetadataInterface::GetSatAzimuth() const
+void IkonosImageMetadataInterface::FetchAcquisitionDate(const std::string & acquisitionDate,
+                                                        const std::string & acquisitionTime,
+                                                        ImageMetadata& imd)
 {
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-  if (!imageKeywordlist.HasKey("support_data.nominal_collection_azimuth_angle"))
-  {
-    return 0;
-  }
-
-  std::string valueString = imageKeywordlist.GetMetadataByKey("support_data.nominal_collection_azimuth_angle");
-  double      value       = atof(valueString.c_str());
-  return value;
+  // Acquisition date format: YYYY-MM-DD
+  // Acquisition time format: hh:mm
+  imd.Add(MDTime::AcquisitionDate, 
+          MetaData::ReadFormattedDate(acquisitionDate + "T" + acquisitionTime, "%Y-%m-%dT%H:%M") );
 }
 
-IkonosImageMetadataInterface::VariableLengthVectorType IkonosImageMetadataInterface::GetFirstWavelengths() const
+
+void IkonosImageMetadataInterface::FetchSpectralSensitivity(const std::string & bandName, ImageMetadata& imd)
 {
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
+  otb::MetaData::LUT1D spectralSensitivity;
+
+  spectralSensitivity.Axis[0].Size = 275;
+  spectralSensitivity.Axis[0].Origin = 0.35;
+  spectralSensitivity.Axis[0].Spacing = 0.0025;
+  
+  if (bandName == "Pan")
   {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
+    spectralSensitivity.Array = {
+            0.000777411f, 0.000698442f, 0.000619473f, 0.000490086f, 0.000360699f, 0.000302118f, 0.000243538f, 0.000339101f, 0.000434664f, 0.000674356f,
+            0.000914047f, 0.00165711f,  0.00240018f,  0.00382524f,  0.00525031f,  0.00774772f,  0.0102451f,   0.0136149f,   0.0169847f,   0.0216852f,
+            0.0263858f,   0.0322139f,   0.0380419f,   0.0451535f,   0.052265f,    0.059372f,    0.066479f,    0.0749836f,   0.0834881f,   0.0922321f,
+            0.100976f,    0.11238f,     0.123783f,    0.135806f,    0.147828f,    0.158671f,    0.169515f,    0.181498f,    0.193481f,    0.199257f,
+            0.205034f,    0.224842f,    0.24465f,     0.252955f,    0.26126f,     0.271512f,    0.281764f,    0.291251f,    0.300738f,    0.30953f,
+            0.318322f,    0.321402f,    0.324481f,    0.329386f,    0.33429f,     0.338595f,    0.342899f,    0.346889f,    0.350879f,    0.354954f,
+            0.359028f,    0.366986f,    0.374944f,    0.383555f,    0.392166f,    0.407887f,    0.423609f,    0.439638f,    0.455668f,    0.472286f,
+            0.488904f,    0.509193f,    0.529483f,    0.549106f,    0.56873f,     0.592408f,    0.616086f,    0.639134f,    0.662182f,    0.680563f,
+            0.698943f,    0.720886f,    0.742829f,    0.764357f,    0.785886f,    0.805496f,    0.825106f,    0.843924f,    0.862743f,    0.882061f,
+            0.901379f,    0.923168f,    0.944958f,    0.948979f,    0.952999f,    0.960789f,    0.968579f,    0.973284f,    0.977989f,    0.972502f,
+            0.967015f,    0.980472f,    0.993929f,    0.993271f,    0.992614f,    0.988076f,    0.983538f,    0.991769f,    1.0f,         0.996457f,
+            0.992914f,    0.996456f,    0.999998f,    0.993659f,    0.98732f,     0.980205f,    0.973089f,    0.957487f,    0.941886f,    0.939394f,
+            0.936901f,    0.920086f,    0.90327f,     0.895178f,    0.887086f,    0.878162f,    0.869238f,    0.876515f,    0.883791f,    0.883182f,
+            0.882573f,    0.883526f,    0.884479f,    0.889877f,    0.895275f,    0.895902f,    0.89653f,     0.911267f,    0.926004f,    0.924618f,
+            0.923232f,    0.91542f,     0.907607f,    0.904518f,    0.90143f,     0.903022f,    0.904613f,    0.902261f,    0.899908f,    0.893658f,
+            0.887407f,    0.890136f,    0.892866f,    0.889693f,    0.88652f,     0.892279f,    0.898039f,    0.904587f,    0.911135f,    0.927581f,
+            0.944026f,    0.951458f,    0.95889f,     0.947059f,    0.935229f,    0.946541f,    0.957854f,    0.965818f,    0.973781f,    0.973879f,
+            0.973978f,    0.971217f,    0.968457f,    0.96373f,     0.959003f,    0.95437f,     0.949736f,    0.932402f,    0.915067f,    0.906743f,
+            0.898418f,    0.90573f,     0.913042f,    0.923885f,    0.934728f,    0.931538f,    0.928349f,    0.934038f,    0.939728f,    0.923287f,
+            0.906846f,    0.914615f,    0.922384f,    0.929317f,    0.93625f,     0.943838f,    0.951427f,    0.948289f,    0.945151f,    0.949082f,
+            0.953013f,    0.938094f,    0.923176f,    0.921154f,    0.919132f,    0.890009f,    0.860885f,    0.867236f,    0.873588f,    0.850292f,
+            0.826995f,    0.817882f,    0.808768f,    0.800406f,    0.792044f,    0.777065f,    0.762087f,    0.755304f,    0.748521f,    0.727815f,
+            0.707108f,    0.696978f,    0.686848f,    0.68378f,     0.680711f,    0.675044f,    0.669377f,    0.641688f,    0.613999f,    0.596144f,
+            0.578289f,    0.567037f,    0.555785f,    0.536112f,    0.516439f,    0.498523f,    0.480606f,    0.475695f,    0.470783f,    0.452628f,
+            0.434473f,    0.415006f,    0.395538f,    0.373581f,    0.351624f,    0.344258f,    0.336893f,    0.323178f,    0.309463f,    0.296963f,
+            0.284464f,    0.277545f,    0.270627f,    0.259838f,    0.249049f,    0.242783f,    0.236516f,    0.226031f,    0.215545f,    0.205517f,
+            0.195489f,    0.187778f,    0.180066f,    0.172017f,    0.163968f,    0.156649f,    0.14933f,     0.142851f,    0.136372f,    0.127527f,
+            0.118682f,    0.111158f,    0.103634f,    0.0963653f,   0.0f};
   }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
+  else if (bandName == "Blue")
   {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-
-  VariableLengthVectorType wavel(1);
-  wavel.Fill(0.);
-
-  int nbBands = this->GetNumberOfBands();
-
-  // Panchromatic case
-  if (nbBands == 1)
-  {
-    wavel.SetSize(1);
-    wavel.Fill(0.526);
-  }
-  else if (nbBands == 4)
-  {
-    wavel.SetSize(4);
-    wavel[0] = 0.445;
-    wavel[1] = 0.506;
-    wavel[2] = 0.632;
-    wavel[3] = 0.757;
-  }
-  else
-    itkExceptionMacro(<< "Invalid number of bands...");
-
-  return wavel;
-}
-
-IkonosImageMetadataInterface::VariableLengthVectorType IkonosImageMetadataInterface::GetLastWavelengths() const
-{
-  const MetaDataDictionaryType& dict = this->GetMetaDataDictionary();
-  if (!this->CanRead())
-  {
-    itkExceptionMacro(<< "Invalid Metadata, no Ikonos Image");
-  }
-
-  ImageKeywordlistType imageKeywordlist;
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-  {
-    itk::ExposeMetaData<ImageKeywordlistType>(dict, MetaDataKey::OSSIMKeywordlistKey, imageKeywordlist);
-  }
-
-  VariableLengthVectorType wavel(1);
-  wavel.Fill(0.);
-
-  int nbBands = this->GetNumberOfBands();
-
-  // Panchromatic case
-  if (nbBands == 1)
-  {
-    wavel.SetSize(1);
-    wavel.Fill(0.929);
-  }
-  else if (nbBands == 4)
-  {
-    wavel.SetSize(4);
-    wavel[0] = 0.516;
-    wavel[1] = 0.595;
-    wavel[2] = 0.698;
-    wavel[3] = 0.853;
-  }
-  else
-    itkExceptionMacro(<< "Invalid number of bands...");
-
-  return wavel;
-}
-
-std::vector<unsigned int> IkonosImageMetadataInterface::GetDefaultDisplay() const
-{
-  std::vector<unsigned int> rgb(3);
-  rgb[0] = 2;
-  rgb[1] = 1;
-  rgb[2] = 0;
-  return rgb;
-}
-
-std::vector<std::string> IkonosImageMetadataInterface::GetEnhancedBandNames() const
-{
-  // Already done for the current file
-  return this->Superclass::GetBandName();
-}
-
-IkonosImageMetadataInterface::WavelengthSpectralBandVectorType IkonosImageMetadataInterface::GetSpectralSensitivity() const
-{
-  // TODO tabulate spectral responses
-  WavelengthSpectralBandVectorType wavelengthSpectralBand = InternalWavelengthSpectralBandVectorType::New();
-
-  std::vector<std::string> bandName = GetBandName();
-  unsigned int             numBands = GetNumberOfBands();
-
-  /** Tests if the number of bands in metadata are the same as bandName size*/
-  if (numBands != bandName.size())
-  {
-    itkExceptionMacro(<< "Invalid number of bands...");
-  }
-
-  for (unsigned int i = 0; i < numBands; ++i)
-  {
-    float b0[275];
-    if (bandName[i].find("Pan") != std::string::npos)
-    {
-      const float tmp[275] = {
-          0.000777411f, 0.000698442f, 0.000619473f, 0.000490086f, 0.000360699f, 0.000302118f, 0.000243538f, 0.000339101f, 0.000434664f, 0.000674356f,
-          0.000914047f, 0.00165711f,  0.00240018f,  0.00382524f,  0.00525031f,  0.00774772f,  0.0102451f,   0.0136149f,   0.0169847f,   0.0216852f,
-          0.0263858f,   0.0322139f,   0.0380419f,   0.0451535f,   0.052265f,    0.059372f,    0.066479f,    0.0749836f,   0.0834881f,   0.0922321f,
-          0.100976f,    0.11238f,     0.123783f,    0.135806f,    0.147828f,    0.158671f,    0.169515f,    0.181498f,    0.193481f,    0.199257f,
-          0.205034f,    0.224842f,    0.24465f,     0.252955f,    0.26126f,     0.271512f,    0.281764f,    0.291251f,    0.300738f,    0.30953f,
-          0.318322f,    0.321402f,    0.324481f,    0.329386f,    0.33429f,     0.338595f,    0.342899f,    0.346889f,    0.350879f,    0.354954f,
-          0.359028f,    0.366986f,    0.374944f,    0.383555f,    0.392166f,    0.407887f,    0.423609f,    0.439638f,    0.455668f,    0.472286f,
-          0.488904f,    0.509193f,    0.529483f,    0.549106f,    0.56873f,     0.592408f,    0.616086f,    0.639134f,    0.662182f,    0.680563f,
-          0.698943f,    0.720886f,    0.742829f,    0.764357f,    0.785886f,    0.805496f,    0.825106f,    0.843924f,    0.862743f,    0.882061f,
-          0.901379f,    0.923168f,    0.944958f,    0.948979f,    0.952999f,    0.960789f,    0.968579f,    0.973284f,    0.977989f,    0.972502f,
-          0.967015f,    0.980472f,    0.993929f,    0.993271f,    0.992614f,    0.988076f,    0.983538f,    0.991769f,    1.0f,         0.996457f,
-          0.992914f,    0.996456f,    0.999998f,    0.993659f,    0.98732f,     0.980205f,    0.973089f,    0.957487f,    0.941886f,    0.939394f,
-          0.936901f,    0.920086f,    0.90327f,     0.895178f,    0.887086f,    0.878162f,    0.869238f,    0.876515f,    0.883791f,    0.883182f,
-          0.882573f,    0.883526f,    0.884479f,    0.889877f,    0.895275f,    0.895902f,    0.89653f,     0.911267f,    0.926004f,    0.924618f,
-          0.923232f,    0.91542f,     0.907607f,    0.904518f,    0.90143f,     0.903022f,    0.904613f,    0.902261f,    0.899908f,    0.893658f,
-          0.887407f,    0.890136f,    0.892866f,    0.889693f,    0.88652f,     0.892279f,    0.898039f,    0.904587f,    0.911135f,    0.927581f,
-          0.944026f,    0.951458f,    0.95889f,     0.947059f,    0.935229f,    0.946541f,    0.957854f,    0.965818f,    0.973781f,    0.973879f,
-          0.973978f,    0.971217f,    0.968457f,    0.96373f,     0.959003f,    0.95437f,     0.949736f,    0.932402f,    0.915067f,    0.906743f,
-          0.898418f,    0.90573f,     0.913042f,    0.923885f,    0.934728f,    0.931538f,    0.928349f,    0.934038f,    0.939728f,    0.923287f,
-          0.906846f,    0.914615f,    0.922384f,    0.929317f,    0.93625f,     0.943838f,    0.951427f,    0.948289f,    0.945151f,    0.949082f,
-          0.953013f,    0.938094f,    0.923176f,    0.921154f,    0.919132f,    0.890009f,    0.860885f,    0.867236f,    0.873588f,    0.850292f,
-          0.826995f,    0.817882f,    0.808768f,    0.800406f,    0.792044f,    0.777065f,    0.762087f,    0.755304f,    0.748521f,    0.727815f,
-          0.707108f,    0.696978f,    0.686848f,    0.68378f,     0.680711f,    0.675044f,    0.669377f,    0.641688f,    0.613999f,    0.596144f,
-          0.578289f,    0.567037f,    0.555785f,    0.536112f,    0.516439f,    0.498523f,    0.480606f,    0.475695f,    0.470783f,    0.452628f,
-          0.434473f,    0.415006f,    0.395538f,    0.373581f,    0.351624f,    0.344258f,    0.336893f,    0.323178f,    0.309463f,    0.296963f,
-          0.284464f,    0.277545f,    0.270627f,    0.259838f,    0.249049f,    0.242783f,    0.236516f,    0.226031f,    0.215545f,    0.205517f,
-          0.195489f,    0.187778f,    0.180066f,    0.172017f,    0.163968f,    0.156649f,    0.14933f,     0.142851f,    0.136372f,    0.127527f,
-          0.118682f,    0.111158f,    0.103634f,    0.0963653f,   0.0f};
-
-      for (unsigned int j = 0; j < 275; ++j)
-      {
-        b0[j] = tmp[j];
-      }
-    }
-    else if (bandName[i].find("Blue") != std::string::npos)
-    {
-      const float tmp[275] = {
+    spectralSensitivity.Array = {
           0.000773147f, 0.00111792f, 0.00146269f, 0.00116425f, 0.000865817f, 0.000798356f, 0.000730896f, 0.000724069f, 0.000717243f, 0.000983961f, 0.00125068f,
           0.00147711f,  0.00170354f, 0.00181267f, 0.0019218f,  0.00235592f,  0.00279004f,  0.00398685f,  0.00518366f,  0.00642842f,  0.00767318f,  0.00823188f,
           0.00879058f,  0.0103296f,  0.0118686f,  0.0146603f,  0.017452f,    0.0262281f,   0.0350041f,   0.0602011f,   0.085398f,    0.139163f,    0.192928f,
@@ -650,15 +275,11 @@ IkonosImageMetadataInterface::WavelengthSpectralBandVectorType IkonosImageMetada
           0.00479963f,  0.00463363f, 0.00446762f, 0.00428193f, 0.00409623f,  0.00384906f,  0.00360189f,  0.00353085f,  0.00345981f,  0.00336041f,  0.00326101f,
           0.00300593f,  0.00275086f, 0.00278287f, 0.00281488f, 0.00259549f,  0.00237609f,  0.00236111f,  0.00234613f,  0.00248306f,  0.00261998f,  0.00263357f,
           0.00264716f,  0.0026242f,  0.00260124f, 0.00210138f, 0.00160152f,  0.00177352f,  0.00194551f,  0.00218138f,  0.00241724f,  0.00185843f,  0.0f};
+  }
 
-      for (unsigned int j = 0; j < 275; ++j)
-      {
-        b0[j] = tmp[j];
-      }
-    }
-    else if (bandName[i].find("Green") != std::string::npos)
-    {
-      const float tmp[275] = {
+  else if (bandName == "Green")
+  {
+    spectralSensitivity.Array = {
           0.000643373f, 0.000721567f, 0.000799761f, 0.000764593f, 0.000729425f, 0.000767756f, 0.000806087f, 0.000691702f, 0.000577317f, 0.000709642f,
           0.000841967f, 0.000741458f, 0.000640949f, 0.000754853f, 0.000868757f, 0.000732192f, 0.000595627f, 0.000952731f, 0.00130983f,  0.00125601f,
           0.00120219f,  0.00194445f,  0.00268671f,  0.00183813f,  0.000989541f, 0.00113105f,  0.00127256f,  0.00160875f,  0.00194493f,  0.00229841f,
@@ -687,15 +308,10 @@ IkonosImageMetadataInterface::WavelengthSpectralBandVectorType IkonosImageMetada
           0.00276034f,  0.00277242f,  0.0027845f,   0.00250953f,  0.00223456f,  0.00235165f,  0.00246875f,  0.00235075f,  0.00223275f,  0.00238435f,
           0.00253594f,  0.00230124f,  0.00206653f,  0.00190024f,  0.00173395f,  0.00191697f,  0.00209999f,  0.00206986f,  0.00203973f,  0.002129f,
           0.00221828f,  0.00179734f,  0.00137641f,  0.00148945f,  0.0f};
-
-      for (unsigned int j = 0; j < 275; ++j)
-      {
-        b0[j] = tmp[j];
-      }
-    }
-    else if (bandName[i].find("Red") != std::string::npos)
-    {
-      const float tmp[275] = {
+  }
+  else if (bandName == "Red")
+  {
+    spectralSensitivity.Array = {
           0.0f,         0.000251974f, 0.000503948f, 0.000447294f, 0.000390639f, 0.000493587f, 0.000596534f, 0.000462484f, 0.000328434f, 0.000587581f,
           0.000846728f, 0.000748537f, 0.000650345f, 0.000516444f, 0.000382543f, 0.000939994f, 0.00149745f,  0.00175874f,  0.00202003f,  0.00252033f,
           0.00302063f,  0.00326826f,  0.00351589f,  0.00376182f,  0.00400775f,  0.00406784f,  0.00412793f,  0.00595608f,  0.00778423f,  0.0080879f,
@@ -724,15 +340,10 @@ IkonosImageMetadataInterface::WavelengthSpectralBandVectorType IkonosImageMetada
           0.00117415f,  0.00116687f,  0.00115959f,  0.00108165f,  0.00100371f,  0.00131319f,  0.00162267f,  0.00130164f,  0.000980609f, 0.00115412f,
           0.00132762f,  0.0013807f,   0.00143378f,  0.00218704f,  0.00294031f,  0.00234605f,  0.00175179f,  0.0020462f,   0.0023406f,   0.00180012f,
           0.00125963f,  0.00107872f,  0.000897814f, 0.000448907f, 0.0f};
-
-      for (unsigned int j = 0; j < 275; ++j)
-      {
-        b0[j] = tmp[j];
-      }
-    }
-    else if (bandName[i].find("NIR") != std::string::npos)
-    {
-      const float tmp[275] = {
+  }
+  else if (bandName == "NIR")
+  {
+    spectralSensitivity.Array = {
           0.000894394f, 0.000713315f, 0.000532235f, 0.000603058f, 0.000673881f, 0.000760361f, 0.00084684f, 0.000787802f, 0.000728763f, 0.000817305f,
           0.000905846f, 0.000904774f, 0.000903701f, 0.00160409f,  0.00230447f,  0.00221407f,  0.00212367f, 0.00314219f,  0.00416071f,  0.00470014f,
           0.00523956f,  0.00641267f,  0.00758578f,  0.0090575f,   0.0105292f,   0.0156041f,   0.0206791f,  0.027643f,    0.0346069f,   0.0395911f,
@@ -761,29 +372,121 @@ IkonosImageMetadataInterface::WavelengthSpectralBandVectorType IkonosImageMetada
           0.00321911f,  0.00300415f,  0.00278918f,  0.00317632f,  0.00356346f,  0.00312642f,  0.00268937f, 0.00260112f,  0.00251287f,  0.00263123f,
           0.00274958f,  0.00362147f,  0.00449336f,  0.00413978f,  0.0037862f,   0.0028968f,   0.0020074f,  0.00190022f,  0.00179303f,  0.00227357f,
           0.0027541f,   0.00137705f,  0.0f,         0.0f,         0.0f};
+  }
 
-      for (unsigned int j = 0; j < 275; ++j)
-      {
-        b0[j] = tmp[j];
-      }
-    }
-    else
+  imd.Bands[0].Add(MDL1D::SpectralSensitivity, spectralSensitivity);
+
+}
+
+
+void IkonosImageMetadataInterface::Parse(ImageMetadata &imd)
+{
+  std::unordered_map<std::string, std::string> ikonosMetadata;
+
+  if (m_MetadataSupplierInterface->GetAs<std::string>("", "METADATATYPE") == "GE")
+  {
+    FetchRPC(imd);
+
+    auto inputFilenameWithDir = m_MetadataSupplierInterface->GetResourceFile();
+
+    auto inputFilename = itksys::SystemTools::GetFilenameName(inputFilenameWithDir);
+    // Find hdr and metadata files : 
+    std::vector<std::string> inputFilenameParts;
+    boost::split(inputFilenameParts,
+                  inputFilename, 
+                  boost::is_any_of("_"));
+
+
+    auto metadataFilename = itksys::SystemTools::GetParentDirectory(inputFilenameWithDir) 
+                + "/" 
+                + inputFilenameParts[0] 
+                + "_" 
+                + inputFilenameParts[1]
+                + "_metadata.txt";
+
+    if (!itksys::SystemTools::FileExists(metadataFilename))
     {
-      itkExceptionMacro(<< "Invalid band name...");
+      otbGenericExceptionMacro(MissingMetadataException, 
+        << "Cannot find the Ikonos metadata file, tried: " << metadataFilename)
+    }
+    
+    // Read metadata from the metadata file
+    ParseMetadataFile(metadataFilename, ikonosMetadata);
+
+    if (!ContainsIkonosMetadata(ikonosMetadata))
+    {
+      otbGenericExceptionMacro(MissingMetadataException, 
+        << "The Ikonos metadata file is incomplete: " << metadataFilename)
     }
 
-    // create wavelength band vector
-    const std::vector<float> vb0(b0, b0 + sizeof(b0) / sizeof(float));
+    auto hdrFilename  = itksys::SystemTools::GetParentDirectory(inputFilenameWithDir) 
+                + "/"
+                + itksys::SystemTools::GetFilenameWithoutExtension(inputFilenameWithDir) 
+                + ".hdr";
 
-    wavelengthSpectralBand->PushBack(FilterFunctionValues::New());
-    wavelengthSpectralBand->GetNthElement(i)->SetFilterFunctionValues(vb0);
-    wavelengthSpectralBand->GetNthElement(i)->SetMinSpectralValue(0.350);
-    wavelengthSpectralBand->GetNthElement(i)->SetMaxSpectralValue(1.035);
-    wavelengthSpectralBand->GetNthElement(i)->SetUserStep(0.0025);
+    if (!itksys::SystemTools::FileExists(hdrFilename))
+    {
+      otbGenericExceptionMacro(MissingMetadataException, 
+        << "Cannot find the Ikonos hdr file, tried: " << hdrFilename)
+    }
+    
+    ParseHeaderFile(hdrFilename, ikonosMetadata);
+  }
+  else if (m_MetadataSupplierInterface->GetAs<std::string>("", "support_data.sensor") == "IKONOS-2")
+  {
+    ParseGeomFile(*m_MetadataSupplierInterface, ikonosMetadata);
+  }
+  else
+  {
+    otbGenericExceptionMacro(MissingMetadataException, 
+      << "No Geo-Eye metadata has been found")
   }
 
 
-  return wavelengthSpectralBand;
+  try
+  {
+    imd.Add(MDStr::SensorID, ikonosMetadata["sensorID"]);
+    imd.Add(MDStr::Instrument, "OSA");
+    
+    imd.Add(MDNum::SunElevation, boost::lexical_cast<double>(ikonosMetadata["sunElevation"]));
+    imd.Add(MDNum::SunAzimuth, boost::lexical_cast<double>(ikonosMetadata["sunAzimuth"]));
+    imd.Add(MDNum::SatElevation, boost::lexical_cast<double>(ikonosMetadata["nominalCollectionElevation"]));
+    imd.Add(MDNum::SatAzimuth, boost::lexical_cast<double>(ikonosMetadata["nominalCollectionAzimuth"]));
+  
+    FetchProductionDate(ikonosMetadata["productionDate"], imd);
+    FetchAcquisitionDate(ikonosMetadata["acquisitionDate"],
+                         ikonosMetadata["acquisitionTime"],
+                         imd);
+
+  }
+  catch (boost::bad_lexical_cast&)
+  {
+    otbGenericExceptionMacro(MissingMetadataException, "Cannot read Ikonos metadata")
+  }
+
+  const auto & bandName = ikonosMetadata["bandName"];
+
+  imd.Bands[0].Add(MDStr::BandName, bandName);
+
+
+  if (imd[MDTime::AcquisitionDate] < MetaData::ReadFormattedDate("2001-01-22T00:00:00"))
+  {
+    imd.Bands[0].Add(MDNum::PhysicalGain, ikonosPhysicalGainPre20010122[bandName]);
+  }
+  else
+  {
+    imd.Bands[0].Add(MDNum::PhysicalGain, ikonosPhysicalGainPost20010122[bandName]);
+  }
+
+  imd.Bands[0].Add(MDNum::PhysicalBias, 0.);
+  imd.Bands[0].Add(MDNum::SolarIrradiance, ikonosSolarIrradiance[bandName]);
+
+  FetchSpectralSensitivity(bandName, imd);
+
+  // Default display
+  imd.Add(MDNum::RedDisplayChannel, 2);
+  imd.Add(MDNum::GreenDisplayChannel, 1);
+  imd.Add(MDNum::BlueDisplayChannel, 0);
 }
 
 } // end namespace otb

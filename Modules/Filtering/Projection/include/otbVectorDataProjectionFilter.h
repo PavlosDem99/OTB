@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -23,7 +23,6 @@
 
 #include "otbVectorDataToVectorDataFilter.h"
 #include "otbGenericRSTransform.h"
-#include "otbImageKeywordlist.h"
 #include <string>
 
 namespace otb
@@ -127,24 +126,6 @@ public:
   itkSetStringMacro(OutputProjectionRef);
   itkGetStringMacro(OutputProjectionRef);
 
-  /**\name Keywords lists accessors and mutators 
-     \deprecated */
-  //@{
-  itkGetMacro(InputKeywordList, ImageKeywordlist);
-  void SetInputKeywordList(const ImageKeywordlist& kwl)
-  {
-    this->m_InputKeywordList = kwl;
-    this->Modified();
-  }
-
-  itkGetMacro(OutputKeywordList, ImageKeywordlist);
-  void SetOutputKeywordList(const ImageKeywordlist& kwl)
-  {
-    this->m_OutputKeywordList = kwl;
-    this->Modified();
-  }
-  //@}
-
   /** Set the origin of the vector data.
    * \sa GetOrigin() */
   itkSetMacro(InputOrigin, OriginType);
@@ -177,6 +158,29 @@ public:
 
   itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
+  /**\name ImageMetadata accessors and mutators */
+  //@{
+  const ImageMetadata* GetInputImageMetadata() const
+  {
+    return m_InputImageMetadata;
+  }
+  void SetInputImageMetadata(const ImageMetadata* imd)
+  {
+    m_InputImageMetadata = imd;
+    this->Modified();
+  }
+
+  const ImageMetadata* GetOutputImageMetadata() const
+  {
+    return m_OutputImageMetadata;
+  }
+  void SetOutputImageMetadata(const ImageMetadata* imd)
+    {
+      m_OutputImageMetadata = imd;
+      this->Modified();
+    }
+  //@}
+
 protected:
   VectorDataProjectionFilter();
   ~VectorDataProjectionFilter() override
@@ -200,8 +204,8 @@ private:
   InternalTransformPointerType m_Transform;
   std::string                  m_InputProjectionRef;
   std::string                  m_OutputProjectionRef;
-  ImageKeywordlist             m_InputKeywordList;
-  ImageKeywordlist             m_OutputKeywordList;
+  const ImageMetadata*   m_InputImageMetadata = nullptr;
+  const ImageMetadata*   m_OutputImageMetadata = nullptr;
 
   SpacingType m_InputSpacing;
   OriginType  m_InputOrigin;

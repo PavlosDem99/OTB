@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -61,7 +61,7 @@ int otbGeometriesProjectionFilterFromMapToSensor(int argc, char* argv[])
   GeometriesFilterType::Pointer           filter = GeometriesFilterType::New();
   filter->SetInput(in_set);
   filter->SetOutput(out_set);
-  filter->SetOutputKeywordList(imageReader->GetOutput()->GetImageKeywordlist());
+  filter->SetOutputImageMetadata(&(imageReader->GetOutput()->GetImageMetadata()));
   filter->SetOutputOrigin(imageReader->GetOutput()->GetOrigin());
   filter->SetOutputSpacing(imageReader->GetOutput()->GetSignedSpacing());
 

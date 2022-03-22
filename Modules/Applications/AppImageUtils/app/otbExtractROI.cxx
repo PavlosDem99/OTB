@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -114,6 +114,11 @@ private:
                             "The extent of the input vector file is computed and then "
                             "gives a region of interest that will be extracted.");
 
+    // These parameters need to be set as non mandatory so they don't have to be selected both in QGIS
+    // Mandatory states will be updated later in DoUpdateParameters method
+    MandatoryOff("mode.fit.im");
+    MandatoryOff("mode.fit.vect");
+
     // Extent mode: ROI is computed with two point (upper left and lower left corners)
     AddChoice("mode.extent", "Extent");
     SetParameterDescription("mode.extent",
@@ -195,8 +200,9 @@ private:
     SetParameterDescription("sizey", "size along y in pixels.");
 
     // Channelist Parameters
-    AddParameter(ParameterType_ListView, "cl", "Output Image channels");
+    AddParameter(ParameterType_Band, "cl", "Output Image channels");
     SetParameterDescription("cl", "Channels to write in the output image.");
+    SetRasterData("cl", "in");
 
     // Elevation
     ElevationParametersHandler::AddElevationParameters(this, "elev");
@@ -421,7 +427,7 @@ private:
     {
       RSTransformType::Pointer rsTransform = RSTransformType::New();
       ImageType*               inImage     = GetParameterImage("in");
-      rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+      rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
       rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
       rsTransform->InstantiateTransform();
       itk::Point<float, 2> ulp_in, lrp_in, ulp_out, lrp_out;
@@ -480,7 +486,7 @@ private:
     else // if ( GetParameterString( "mode.extent.unit" ) == "lonlat" )
     {
       RSTransformType::Pointer rsTransform = RSTransformType::New();
-      rsTransform->SetInputKeywordList(input->GetImageKeywordlist());
+      rsTransform->SetInputImageMetadata(&(input->GetImageMetadata()));
       rsTransform->SetInputProjectionRef(input->GetProjectionRef());
       rsTransform->InstantiateTransform();
       itk::Point<float, 2> ulp_in, lrp_in, ulp_out, lrp_out;
@@ -538,7 +544,7 @@ private:
       {
         RSTransformType::Pointer rsTransform = RSTransformType::New();
         ImageType*               inImage     = GetParameterImage("in");
-        rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+        rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
         rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
         rsTransform->InstantiateTransform();
         itk::Point<float, 2> centerp_in, centerp_out;
@@ -580,7 +586,7 @@ private:
       else // if ( GetParameterString( "mode.radius.unitc" ) == "lon/lat" )
       {
         RSTransformType::Pointer rsTransform = RSTransformType::New();
-        rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+        rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
         rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
         rsTransform->InstantiateTransform();
         itk::Point<float, 2> centerp_in;
@@ -653,7 +659,7 @@ private:
     else // if ( GetParameterString("mode.radius.unitc") == "lonlat" )
     {
       RSTransformType::Pointer rsTransform = RSTransformType::New();
-      rsTransform->SetInputKeywordList(input->GetImageKeywordlist());
+      rsTransform->SetInputImageMetadata(&(input->GetImageMetadata()));
       rsTransform->SetInputProjectionRef(input->GetProjectionRef());
       rsTransform->InstantiateTransform();
       itk::Point<float, 2> centerp_in, centerp_out;
@@ -718,7 +724,7 @@ private:
         }
         RSTransformType::Pointer rsTransform = RSTransformType::New();
         rsTransform->SetInputProjectionRef(inputProjectionRef);
-        rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+        rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
         rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
         rsTransform->InstantiateTransform();
         itk::Point<float, 2> ulp_in, urp_in, llp_in, lrp_in;
@@ -762,9 +768,9 @@ private:
 
 
         RSTransformType::Pointer rsTransform = RSTransformType::New();
-        rsTransform->SetInputKeywordList(referencePtr->GetImageKeywordlist());
+        rsTransform->SetInputImageMetadata(&(referencePtr->GetImageMetadata()));
         rsTransform->SetInputProjectionRef(referencePtr->GetProjectionRef());
-        rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+        rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
         rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
         rsTransform->InstantiateTransform();
 

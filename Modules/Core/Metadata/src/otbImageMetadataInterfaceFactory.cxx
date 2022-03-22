@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -47,25 +47,36 @@
 
 namespace otb
 {
-ImageMetadataInterfaceFactory::ImageMetadataInterfaceBasePointerType ImageMetadataInterfaceFactory::CreateIMI(const MetaDataDictionaryType& dict)
+ImageMetadataInterfaceFactory::ImageMetadataInterfaceBasePointerType
+ImageMetadataInterfaceFactory
+::CreateIMI(ImageMetadata & imd, const MetadataSupplierInterface & mds)
 {
   RegisterBuiltInFactories();
 
-  std::list<ImageMetadataInterfaceBasePointerType> possibleIMI;
-  std::list<itk::LightObject::Pointer>             allOpticalObjects = itk::ObjectFactoryBase::CreateAllInstance("OpticalImageMetadataInterface");
-  std::list<itk::LightObject::Pointer>             allSarObjects     = itk::ObjectFactoryBase::CreateAllInstance("SarImageMetadataInterface");
-  std::list<itk::LightObject::Pointer>             allObjects;
+  auto                                       allOpticalObjects = itk::ObjectFactoryBase::CreateAllInstance("OpticalImageMetadataInterface");
+  auto                                       allSarObjects     = itk::ObjectFactoryBase::CreateAllInstance("SarImageMetadataInterface");
+  std::list<itk::LightObject::Pointer>       allObjects;
 
   std::copy(allOpticalObjects.begin(), allOpticalObjects.end(), std::back_inserter(allObjects));
   std::copy(allSarObjects.begin(), allSarObjects.end(), std::back_inserter(allObjects));
 
-
-  for (std::list<itk::LightObject::Pointer>::iterator i = allObjects.begin(); i != allObjects.end(); ++i)
+  for (auto i = allObjects.begin(); i != allObjects.end(); ++i)
   {
     ImageMetadataInterfaceBase* io = dynamic_cast<ImageMetadataInterfaceBase*>(i->GetPointer());
     if (io)
     {
-      possibleIMI.push_back(io);
+      // the static part of ImageMetadata is already filled
+      io->SetMetadataSupplierInterface(mds);
+      try
+      {
+        io->Parse(imd);
+        return io;
+      }
+      catch(MissingMetadataException& e)
+      {
+        // silent catch of MissingMetadataException
+        // just means that this IMI can't parse the file
+      }
     }
     else
     {
@@ -73,17 +84,8 @@ ImageMetadataInterfaceFactory::ImageMetadataInterfaceBasePointerType ImageMetada
     }
   }
 
-  for (std::list<ImageMetadataInterfaceBasePointerType>::iterator k = possibleIMI.begin(); k != possibleIMI.end(); ++k)
-  {
-    (*k)->SetMetaDataDictionary(dict);
-    if ((*k)->CanRead())
-    {
-      return *k;
-    }
-  }
-
-  DefaultImageMetadataInterface::Pointer defaultIMI = DefaultImageMetadataInterface::New();
-  defaultIMI->SetMetaDataDictionary(dict);
+  auto defaultIMI = DefaultImageMetadataInterface::New();
+  defaultIMI->SetMetadataSupplierInterface(mds);
   return dynamic_cast<ImageMetadataInterfaceBase*>(static_cast<DefaultImageMetadataInterface*>(defaultIMI));
 }
 

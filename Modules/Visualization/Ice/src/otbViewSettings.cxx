@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -28,12 +28,14 @@ ViewSettings::ViewSettings() :
   m_Wkt( "" ),
   m_RotationAngle( 0.0 ),
   m_UseProjection( true ),
-  m_GeometryChanged( false )
+  m_GeometryChanged( false ),
+  m_DefaultImageMetadata()
 {
   m_Origin.Fill( 0 );
   m_Spacing.Fill( 1 );
   m_ViewportSize.Fill( 0 );
   m_RotationCenter.Fill( 0 );
+  m_ImageMetadata = &m_DefaultImageMetadata;
 }
 
 ViewSettings::~ViewSettings()
@@ -49,7 +51,7 @@ ViewSettings
 
   m_Wkt = "";
 
-  m_KeywordList = KeywordListType();
+  m_ImageMetadata = &m_DefaultImageMetadata;;
 
   m_UseProjection = true;
   m_GeometryChanged = false;
@@ -129,13 +131,13 @@ void ViewSettings::SetPersepectiveAngle()
   typedef otb::GenericRSTransform<double,3,3> RSTransformType;
   // Build the RS transform
   RSTransformType::Pointer forwardTransform = RSTransformType::New();
-  forwardTransform->SetInputKeywordList(m_KeywordList);
+  forwardTransform->SetInputImageMetadata(m_ImageMetadata);
   forwardTransform->SetInputProjectionRef(m_Wkt);
   forwardTransform->InstantiateTransform();
 
   RSTransformType::Pointer inverseTransform = RSTransformType::New();
   inverseTransform->SetOutputProjectionRef(m_Wkt);
-  inverseTransform->SetOutputKeywordList(m_KeywordList);
+  inverseTransform->SetOutputImageMetadata(m_ImageMetadata);
   inverseTransform->InstantiateTransform();
 
   PointType centerPoint = GetViewportCenter();
@@ -163,13 +165,13 @@ void ViewSettings::SetNorthUpAngle()
   typedef otb::GenericRSTransform<double,3,3> RSTransformType;
   // Build the RS transform
   RSTransformType::Pointer forwardTransform = RSTransformType::New();
-  forwardTransform->SetInputKeywordList(m_KeywordList);
+  forwardTransform->SetInputImageMetadata(m_ImageMetadata);
   forwardTransform->SetInputProjectionRef(m_Wkt);
   forwardTransform->InstantiateTransform();
 
   RSTransformType::Pointer inverseTransform = RSTransformType::New();
   inverseTransform->SetOutputProjectionRef(m_Wkt);
-  inverseTransform->SetOutputKeywordList(m_KeywordList);
+  inverseTransform->SetOutputImageMetadata(m_ImageMetadata);
   inverseTransform->InstantiateTransform();
   
   PointType centerPoint = GetViewportCenter();

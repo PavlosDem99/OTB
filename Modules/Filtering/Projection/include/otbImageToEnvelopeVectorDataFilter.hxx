@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -101,7 +101,7 @@ void ImageToEnvelopeVectorDataFilter<TInputImage, TOutputVectorData>::Instantiat
   m_Transform                                    = InternalTransformType::New();
   m_Transform->SetOutputProjectionRef(m_OutputProjectionRef);
   m_Transform->SetInputProjectionRef(inputPtr->GetProjectionRef());
-  m_Transform->SetInputKeywordList(inputPtr->GetImageKeywordlist());
+  m_Transform->SetInputImageMetadata(&(inputPtr->GetImageMetadata()));
   m_Transform->InstantiateTransform();
 }
 

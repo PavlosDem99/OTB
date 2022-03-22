@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -80,7 +80,9 @@ int otbGCPsToRPCSensorModelImageFilterWithoutDEM(int argc, char* argv[])
   ofs.setf(std::ios::fixed, std::ios::floatfield);
   ofs.precision(10);
 
-  ofs << rpcEstimator->GetOutput()->GetImageKeywordlist() << std::endl;
+  auto outputRPC = boost::any_cast<otb::Projection::RPCParam>(rpcEstimator->GetOutput()->GetImageMetadata()[otb::MDGeom::RPC]);
+
+  ofs << outputRPC.ToJSON() << std::endl;
   ofs << "Residual ground error: " << rpcEstimator->GetRMSGroundError() << std::endl;
   ofs.close();
 

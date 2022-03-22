@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -44,7 +44,6 @@
 
 //
 // OTB includes (sorted by alphabetic order)
-#include "otbImageMetadataInterfaceBase.h"
 #include "otbImage.h" // Needed to get otb::internal::Get/SetSignedSpacing()
 //
 // Monteverdi includes (sorted by alphabetic order)
@@ -186,6 +185,13 @@ public:
    */
   virtual ImageBaseType::Pointer ToImageBase() = 0;
 
+
+  /**
+   * Get a reference to the ImageMetadata.
+   */
+  virtual const otb::ImageMetadata & GetImageMetadata() const = 0;
+
+
   /**
    * \return The largest possible region of the current LOD level.
    */
@@ -246,7 +252,7 @@ public:
 
   //
   // Public SLOTS.
-public slots:
+public Q_SLOTS:
 
   /**
    * \brief Refresh histogram-model based on no-data properties.
@@ -257,7 +263,7 @@ public slots:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /** */
   void SpacingChanged(const SpacingType&);
 
@@ -282,10 +288,6 @@ protected:
    * \param context Pointer to a histogram build-context.
    */
   void RefreshHistogram(void* const context);
-
-  /**
-   */
-  inline otb::ImageMetadataInterfaceBase::ConstPointer GetMetaDataInterface() const;
 
   //
   // AbstractModel methods.
@@ -350,7 +352,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
 };
 
 } // end namespace 'mvd'
@@ -424,7 +426,7 @@ void AbstractImageModel::SetCurrentLod(CountType lod)
   m_CurrentLod = lod;
 
   // if everything ok emit the new spacing of the current lod
-  emit SpacingChanged(otb::internal::GetSignedSpacing(static_cast<ImageBaseType*>(ToImageBase())));
+  Q_EMIT SpacingChanged(otb::internal::GetSignedSpacing(static_cast<ImageBaseType*>(ToImageBase())));
 }
 
 /*****************************************************************************/
@@ -456,12 +458,6 @@ inline const SpacingType& AbstractImageModel::GetEstimatedGroundSpacing() const
 inline CountType AbstractImageModel::GetNbComponents() const
 {
   return ToImageBase()->GetNumberOfComponentsPerPixel();
-}
-
-/*****************************************************************************/
-inline otb::ImageMetadataInterfaceBase::ConstPointer AbstractImageModel::GetMetaDataInterface() const
-{
-  return otb::ConstCast<const otb::ImageMetadataInterfaceBase>(otb::ImageMetadataInterfaceFactory::CreateIMI(ToImageBase()->GetMetaDataDictionary()));
 }
 
 /*****************************************************************************/

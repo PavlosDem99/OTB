@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -428,10 +428,10 @@ void VectorDataExtractROI<TVectorData>::ProjectRegionToInputVectorProjection()
 
   /** Set up the projection */
   genericTransform->SetInputProjectionRef(m_ROI.GetRegionProjection());
-  genericTransform->SetInputKeywordList(m_ROI.GetKeywordList());
+  genericTransform->SetInputImageMetadata(&(m_ROI.GetImageMetadata()));
   genericTransform->SetOutputProjectionRef(this->GetInput()->GetProjectionRef());
-  const itk::MetaDataDictionary& inputDict = this->GetInput()->GetMetaDataDictionary();
-  genericTransform->SetOutputDictionary(inputDict);
+  //TODO: const itk::MetaDataDictionary& inputDict = this->GetInput()->GetMetaDataDictionary();
+  //TODO: genericTransform->SetOutputImageMetadata(this->GetInput()->GetImageMetadata());
   genericTransform->SetOutputOrigin(this->GetInput()->GetOrigin());
   genericTransform->SetOutputSpacing(this->GetInput()->GetSpacing());
   genericTransform->InstantiateTransform();

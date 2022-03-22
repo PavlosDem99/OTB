@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -198,7 +198,7 @@ void ColorSetupWidget::on_alphaSlider_valueChanged(int value)
 {
   // qDebug() << "on_alphaSlider_valueChanged(" << value << ")";
 
-  emit AlphaValueChanged(ToAlpha(value));
+  Q_EMIT AlphaValueChanged(ToAlpha(value));
 }
 
 /*******************************************************************************/

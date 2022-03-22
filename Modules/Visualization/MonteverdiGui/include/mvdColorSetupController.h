@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -105,7 +105,7 @@ public:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    * \brief Signal emitted when the band-index of a RGB channel has
    * been changed. This signal is used to forward events to other
@@ -178,7 +178,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   /**
    * \brief Slot called when the current index of a RGB channel of the
    * controlled widget has changed.

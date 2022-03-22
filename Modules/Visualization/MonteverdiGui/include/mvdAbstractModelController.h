@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -124,7 +124,7 @@ public:
 
   //
   // Slots.
-public slots:
+public Q_SLOTS:
 
   /**
    */
@@ -134,7 +134,7 @@ public slots:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    */
   void AboutToDisconnectModel(AbstractModel*);
@@ -214,7 +214,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   /**
    * Slot called before object is destroyed.
    * It is used to disconnect model from controller when controller is

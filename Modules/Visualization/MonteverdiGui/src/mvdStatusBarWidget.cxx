@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -191,8 +191,8 @@ void StatusBarWidget::on_pixelIndexLineEdit_returnPressed()
 
   //
   // If both pixel-index coordinates have correctly been converted,
-  // emit pixel-index changed signal.
-  emit PixelIndexChanged(index);
+  // Q_EMIT pixel-index changed signal.
+  Q_EMIT PixelIndexChanged(index);
 }
 
 /*****************************************************************************/
@@ -287,7 +287,7 @@ void StatusBarWidget::ChangeScale()
 
   //
   // Emit scale changed.
-  emit ScaleChanged(numerator / denominator);
+  Q_EMIT ScaleChanged(numerator / denominator);
 }
 
 } // end namespace 'mvd'

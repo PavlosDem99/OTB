@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -40,7 +40,7 @@ bool QtApplication::notify(QObject* object, QEvent* ev)
     QString message = QString("<center><font color=\"#FF0000\">");
     message.append(ex.what());
     message.append("</font></center>");
-    emit UnhandledException(message);
+    Q_EMIT UnhandledException(message);
   }
   return false;
 }

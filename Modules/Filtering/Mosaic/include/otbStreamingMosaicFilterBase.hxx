@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  * Copyright (C) 2016-2019 IRSTEA
  *
  * This file is part of Orfeo Toolbox
@@ -240,8 +240,8 @@ void StreamingMosaicFilterBase<TInputImage, TOutputImage, TInternalValueType>::C
   }
 
   // Set final size
-  m_OutputSize[0] = vcl_floor((extentSup[0] - extentInf[0]) / vcl_abs(m_OutputSpacing[0])) + 1;
-  m_OutputSize[1] = vcl_floor((extentSup[1] - extentInf[1]) / vcl_abs(m_OutputSpacing[1])) + 1;
+  m_OutputSize[0] = std::round((extentSup[0] - extentInf[0]) / vcl_abs(m_OutputSpacing[0]));
+  m_OutputSize[1] = std::round((extentSup[1] - extentInf[1]) / vcl_abs(m_OutputSpacing[1]));
 
   // Set final origin (Coordinate of the upper left pixel center)
   m_OutputOrigin[0] = extentInf[0];
@@ -256,7 +256,7 @@ void StreamingMosaicFilterBase<TInputImage, TOutputImage, TInternalValueType>::C
 template <class TInputImage, class TOutputImage, class TInternalValueType>
 void StreamingMosaicFilterBase<TInputImage, TOutputImage, TInternalValueType>::GenerateOutputInformation(void)
 {
-  itkDebugMacro(<< "Generate output informations");
+  itkDebugMacro(<< "Generate output information");
   Superclass::GenerateOutputInformation();
 
   // check interpolator and put a default interpolator if empty
@@ -345,7 +345,7 @@ void StreamingMosaicFilterBase<TInputImage, TOutputImage, TInternalValueType>::G
     noDataValueAvailable.push_back(true);
     noDataValues1.push_back(static_cast<double>(m_NoDataOutputPixel[band]));
   }
-  otb::WriteNoDataFlags(noDataValueAvailable, noDataValues1, this->GetOutput()->GetMetaDataDictionary());
+  otb::WriteNoDataFlags(noDataValueAvailable, noDataValues1, this->GetOutput()->GetImageMetadata());
 
   // Get min & max values from output pixel type
   minOutputPixelValue = static_cast<InternalValueType>(itk::NumericTraits<OutputImageInternalPixelType>::NonpositiveMin());

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -22,6 +22,13 @@
 set ( cmake_configure_option
 "CMAKE_BUILD_TYPE=${CTEST_BUILD_CONFIGURATION}
 CMAKE_INSTALL_PREFIX:PATH=${CTEST_INSTALL_DIRECTORY}")
+
+if(WIN32)
+  set (cmake_configure_option
+"${cmake_configure_option}
+CMAKE_C_COMPILER_LAUNCHER=buildcache
+CMAKE_CXX_COMPILER_LAUNCHER=buildcache")
+endif()
 
 set ( temporary_option
 "OTB_USE_MPI=OFF")

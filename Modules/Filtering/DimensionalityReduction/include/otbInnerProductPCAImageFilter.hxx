@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -53,6 +53,10 @@ void InnerProductPCAImageFilter<TInputImage, TOutputImage>::GenerateOutputInform
     this->GetOutput()->SetNumberOfComponentsPerPixel(m_NumberOfPrincipalComponentsRequired);
   else
     this->GetOutput()->SetNumberOfComponentsPerPixel(m_NumberOfPrincipalComponentsRequired + 1);
+  
+  // Band specific metadatas are not kept in the reduced space.
+  this->GetOutput()->SetBandImageMetadata(
+        ImageMetadata::ImageMetadataBandsType(this->GetOutput()->GetNumberOfComponentsPerPixel()));
 }
 
 /**

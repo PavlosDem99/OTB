@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -83,7 +83,7 @@ int otbGCPsToRPCSensorModelImageFilterAndOrtho(int argc, char* argv[])
   std::cout.setf(std::ios::fixed, std::ios::floatfield);
   std::cout.precision(10);
 
-  otbLogMacro(Debug, << rpcEstimator->GetOutput()->GetImageKeywordlist());
+  otbLogMacro(Debug, << rpcEstimator->GetOutput()->GetImageMetadata());
   otbLogMacro(Info, << "Residual ground error: " << rpcEstimator->GetRMSGroundError());
 
   // Orthorectify the output image

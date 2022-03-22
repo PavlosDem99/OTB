@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -52,11 +52,11 @@ public:
 
   void ProcessEvent(itk::Object* caller, const itk::EventObject& event);
 
-public slots:
+public Q_SLOTS:
   void Init();
   void ReportProcess();
 
-signals:
+Q_SIGNALS:
   void AddNewProcessToReport();
   void SetText(QString);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -36,37 +36,7 @@
 
 namespace otb
 {
-OpticalImageMetadataInterfaceFactory::OpticalImageMetadataInterfacePointerType
-OpticalImageMetadataInterfaceFactory::CreateIMI(const MetaDataDictionaryType& dict)
-{
-  RegisterBuiltInFactories();
 
-  std::list<OpticalImageMetadataInterfacePointerType> possibleIMI;
-  std::list<itk::LightObject::Pointer>                allobjects = itk::ObjectFactoryBase::CreateAllInstance("OpticalImageMetadataInterface");
-  for (std::list<itk::LightObject::Pointer>::iterator i = allobjects.begin(); i != allobjects.end(); ++i)
-  {
-    OpticalImageMetadataInterface* io = dynamic_cast<OpticalImageMetadataInterface*>(i->GetPointer());
-    if (io)
-    {
-      possibleIMI.push_back(io);
-    }
-    else
-    {
-      itkGenericExceptionMacro(<< "Error OpticalImageMetadataInterface factory did not return an OpticalImageMetadataInterface: " << (*i)->GetNameOfClass());
-    }
-  }
-  for (std::list<OpticalImageMetadataInterfacePointerType>::iterator k = possibleIMI.begin(); k != possibleIMI.end(); ++k)
-  {
-    (*k)->SetMetaDataDictionary(dict);
-    if ((*k)->CanRead())
-    {
-      return *k;
-    }
-  }
-
-  OpticalDefaultImageMetadataInterface::Pointer defaultIMI = OpticalDefaultImageMetadataInterface::New();
-  return dynamic_cast<OpticalImageMetadataInterface*>(static_cast<OpticalDefaultImageMetadataInterface*>(defaultIMI));
-}
 
 void OpticalImageMetadataInterfaceFactory::RegisterBuiltInFactories()
 {

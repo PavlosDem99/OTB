@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -62,7 +62,7 @@ void QtProgressBar::ProcessEvent(itk::Object* caller, const itk::EventObject& ev
     if (process)
     {
       const int value2 = static_cast<int>(process->GetProgress() * this->maximum());
-      emit      SetValueChanged(value2);
+      Q_EMIT      SetValueChanged(value2);
     }
   }
 }
@@ -77,7 +77,7 @@ void QtProgressBar::ConstProcessEvent(const itk::Object* caller, const itk::Even
     {
       const int v = static_cast<int>(process->GetProgress() * this->maximum());
 
-      emit SetValueChanged(v);
+      Q_EMIT SetValueChanged(v);
     }
   }
 }

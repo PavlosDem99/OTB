@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -77,19 +77,6 @@ inline void otb::GeometriesProjectionFilter::SetInputOrigin(ImageReference::Orig
 inline void otb::GeometriesProjectionFilter::SetOutputOrigin(ImageReference::OriginType const& origin)
 {
   m_OutputImageReference.SetOrigin(origin);
-}
-
-
-inline void otb::GeometriesProjectionFilter::SetInputKeywordList(const ImageKeywordlist& kwl)
-{
-  this->m_InputKeywordList = kwl;
-  this->Modified();
-}
-
-inline void otb::GeometriesProjectionFilter::SetOutputKeywordList(const ImageKeywordlist& kwl)
-{
-  this->m_OutputKeywordList = kwl;
-  this->Modified();
 }
 
 #endif

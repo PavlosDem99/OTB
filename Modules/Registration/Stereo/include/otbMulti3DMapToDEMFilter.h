@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -124,8 +124,6 @@ public:
 
   // 2D Transform
   typedef otb::GenericRSTransform<> RSTransform2DType;
-
-  typedef otb::ImageKeywordlist ImageKeywordListType;
 
   typedef std::map<unsigned int, itk::ImageRegionConstIterator<InputMapType>> MapIteratorList;
 
@@ -258,10 +256,6 @@ private:
 
   Multi3DMapToDEMFilter(const Self&) = delete;
   void operator=(const Self&) = delete;
-
-  /** Keywordlist of each map */
-  // std::vector<ImageKeywordListType> m_MapKeywordLists;
-
 
   /** Reference sensor image transform */
   RSTransformType::Pointer m_ReferenceToGroundTransform;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -31,7 +31,6 @@ namespace otb
 template <class TDEMImage>
 DEMToImageGenerator<TDEMImage>::DEMToImageGenerator()
 {
-  m_DEMHandler          = DEMHandlerType::Instance();
   m_OutputSpacing[0]    = 0.0001;
   m_OutputSpacing[1]    = -0.0001;
   m_OutputSize[0]       = 1;
@@ -48,8 +47,7 @@ DEMToImageGenerator<TDEMImage>::DEMToImageGenerator()
 template <class TDEMImage>
 void DEMToImageGenerator<TDEMImage>::GenerateOutputInformation()
 {
-  DEMImageType* output;
-  output = this->GetOutput(0);
+  DEMImageType* output = this->GetOutput(0);
 
   IndexType start;
   start[0] = 0;
@@ -64,17 +62,10 @@ void DEMToImageGenerator<TDEMImage>::GenerateOutputInformation()
   output->SetSignedSpacing(m_OutputSpacing);
   output->SetOrigin(m_OutputOrigin);
 
-
-  // Get the Output MetaData Dictionary
-  itk::MetaDataDictionary& dict = output->GetMetaDataDictionary();
-
-  // Encapsulate the   metadata set by the user
-  itk::EncapsulateMetaData<std::string>(dict, MetaDataKey::ProjectionRefKey, m_Transform->GetInputProjectionRef());
-
-  if (this->GetOutputKeywordList().GetSize() > 0)
-  {
-    itk::EncapsulateMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, m_Transform->GetInputKeywordList());
-  }
+  // Add the metadata set by the user to the output
+  output->m_Imd.Add(MDGeom::ProjectionProj, std::string(m_Transform->GetInputProjectionRef()));
+  if (m_Transform->GetInputImageMetadata() != nullptr)
+    output->m_Imd.Merge(*m_Transform->GetInputImageMetadata());
 }
 
 // InstantiateTransform method
@@ -125,12 +116,12 @@ void DEMToImageGenerator<TDEMImage>::ThreadedGenerateData(const OutputImageRegio
       geoPoint = m_Transform->TransformPoint(phyPoint);
       if (m_AboveEllipsoid)
       {
-        height = m_DEMHandler->GetHeightAboveEllipsoid(geoPoint); // Altitude
+        height = DEMHandler::GetInstance().GetHeightAboveEllipsoid(geoPoint); // Altitude
                                                                   // calculation
       }
       else
       {
-        height = m_DEMHandler->GetHeightAboveMSL(geoPoint); // Altitude
+        height = DEMHandler::GetInstance().GetHeightAboveMSL(geoPoint); // Altitude
                                                             // calculation
       }
     }
@@ -138,12 +129,12 @@ void DEMToImageGenerator<TDEMImage>::ThreadedGenerateData(const OutputImageRegio
     {
       if (m_AboveEllipsoid)
       {
-        height = m_DEMHandler->GetHeightAboveEllipsoid(phyPoint); // Altitude
+        height = DEMHandler::GetInstance().GetHeightAboveEllipsoid(phyPoint); // Altitude
                                                                   // calculation
       }
       else
       {
-        height = m_DEMHandler->GetHeightAboveMSL(phyPoint); // Altitude
+        height = DEMHandler::GetInstance().GetHeightAboveMSL(phyPoint); // Altitude
                                                             // calculation
       }
     }
@@ -153,7 +144,6 @@ void DEMToImageGenerator<TDEMImage>::ThreadedGenerateData(const OutputImageRegio
     */
     //       otbMsgDevMacro(<< "height" << height);
     // DEM sets a default value (-32768) at point where it doesn't have altitude information.
-    // OSSIM has chosen to change this default value in OSSIM_DBL_NAN (-4.5036e15).
     if (!vnl_math_isnan(height))
     {
       // Fill the image

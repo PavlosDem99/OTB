@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -20,12 +20,21 @@
 #ifndef otbSharkKMeansMachineLearningModel_h
 #define otbSharkKMeansMachineLearningModel_h
 
-#include "boost/shared_ptr.hpp"
+#include <memory>
+
 #include "itkLightObject.h"
 #include "otbMachineLearningModel.h"
 
+// Quiet a deprecation warning
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
+
+#if (defined (__GNUC__) && (__GNUC__ >= 9)) || (defined (__clang__) && (__clang_major__ >= 10))
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
@@ -74,10 +83,10 @@ class ITK_EXPORT SharkKMeansMachineLearningModel : public MachineLearningModel<T
 {
 public:
   /** Standard class typedefs. */
-  typedef SharkKMeansMachineLearningModel Self;
+  typedef SharkKMeansMachineLearningModel                 Self;
   typedef MachineLearningModel<TInputValue, TTargetValue> Superclass;
-  typedef itk::SmartPointer<Self>       Pointer;
-  typedef itk::SmartPointer<const Self> ConstPointer;
+  typedef itk::SmartPointer<Self>                         Pointer;
+  typedef itk::SmartPointer<const Self>                   ConstPointer;
 
   typedef typename Superclass::InputValueType           InputValueType;
   typedef typename Superclass::InputSampleType          InputSampleType;
@@ -163,7 +172,7 @@ private:
   shark::Centroids m_Centroids;
 
   /** shark Model could be SoftClusteringModel or HardClusteringModel */
-  boost::shared_ptr<ClusteringModelType> m_ClusteringModel;
+  std::shared_ptr<ClusteringModelType> m_ClusteringModel;
 };
 } // end namespace otb
 

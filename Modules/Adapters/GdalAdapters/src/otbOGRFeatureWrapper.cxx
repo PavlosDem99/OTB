@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -23,8 +23,6 @@
 /*===============================[ Includes ]================================*/
 /*===========================================================================*/
 #include "otbOGRFeatureWrapper.h"
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"

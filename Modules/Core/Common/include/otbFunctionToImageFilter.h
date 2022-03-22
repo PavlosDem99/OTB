@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -32,7 +32,7 @@ namespace otb
 {
 
 /** \class FunctionToImageFilter
-  * \brief Evaluates a ImageFunction onto a source image
+ * \brief Evaluates a ImageFunction onto a source image
  *
  * The class walks an input image and evaluates
  * the function at every pixel location. The output of the spatial function

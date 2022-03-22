@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -53,7 +53,8 @@ int otbSarDeburstFilterTest(int argc, char* argv[])
   reader->SetFileName(argv[2]);
   reader->UpdateOutputInformation();
 
-  unsigned int nb_bursts = atoi(reader->GetOutput()->GetImageKeywordlist().GetMetadataByKey("support_data.geom.bursts.number").c_str());
+
+  const auto nb_bursts = boost::any_cast<const otb::SARParam&>(reader->GetOutput()->GetImageMetadata()[otb::MDGeom::SAR]).burstRecords.size();
 
   if (nb_bursts != 1)
   {

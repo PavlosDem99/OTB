@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,7 +25,7 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "otbStreamingStatisticsVectorImageFilter.h"
-#include "otbInverseSensorModel.h"
+#include "otbNoDataHelper.h"
 
 namespace otb
 {
@@ -176,8 +176,7 @@ void Multi3DMapToDEMFilter<T3DImage, TMaskImage, TOutputDEMImage>::SetOutputPara
     T3DImage* imgPtr = const_cast<T3DImage*>(this->Get3DMapInput(k));
 
     RSTransform2DType::Pointer mapToGroundTransform = RSTransform2DType::New();
-    ImageKeywordListType       imageKWL             = imgPtr->GetImageKeywordlist();
-    mapToGroundTransform->SetInputKeywordList(imageKWL);
+    mapToGroundTransform->SetInputImageMetadata(&(imgPtr->GetImageMetadata()));
 
     /*if(!m_ProjectionRef.empty())
      {
@@ -220,12 +219,6 @@ void Multi3DMapToDEMFilter<T3DImage, TMaskImage, TOutputDEMImage>::SetOutputPara
     box_xmax = std::max(box_xmax, xmax);
     box_ymin = std::min(box_ymin, ymin);
     box_ymax = std::max(box_ymax, ymax);
-
-    /* if (imageKWL.GetSize() > 0)
-       {
-       itk::EncapsulateMetaData<ImageKeywordListType>(outputPtr->GetMetaDataDictionary(),
-                                                      MetaDataKey::OSSIMKeywordlistKey, imageKWL);
-       }*/
   }
 
   // Compute step :
@@ -337,9 +330,8 @@ void Multi3DMapToDEMFilter<T3DImage, TMaskImage, TOutputDEMImage>::GenerateOutpu
   noDataValueAvailable.push_back(true);
   std::vector<double> noDataValue;
   noDataValue.push_back(m_NoDataValue);
-  itk::MetaDataDictionary& dict = outputPtr->GetMetaDataDictionary();
-  itk::EncapsulateMetaData<std::vector<bool>>(dict, MetaDataKey::NoDataValueAvailable, noDataValueAvailable);
-  itk::EncapsulateMetaData<std::vector<double>>(dict, MetaDataKey::NoDataValue, noDataValue);
+
+  WriteNoDataFlags(noDataValueAvailable, noDataValue, outputPtr->GetImageMetadata());
 }
 
 template <class T3DImage, class TMaskImage, class TOutputDEMImage>
@@ -392,12 +384,11 @@ void Multi3DMapToDEMFilter<T3DImage, TMaskImage, TOutputDEMImage>::GenerateInput
     T3DImage* imgPtr = const_cast<T3DImage*>(this->Get3DMapInput(k));
 
     RSTransformType::Pointer groundToSensorTransform = RSTransformType::New();
-    // groundToSensorTransform->SetInputKeywordList(outputDEM->GetImageKeywordlist());
     // groundToSensorTransform->SetInputOrigin(outputDEM->GetOrigin());
     // groundToSensorTransform->SetInputSpacing(outputDEM->GetSignedSpacing());
     groundToSensorTransform->SetInputProjectionRef(m_ProjectionRef);
 
-    groundToSensorTransform->SetOutputKeywordList(imgPtr->GetImageKeywordlist());
+    groundToSensorTransform->SetOutputImageMetadata(&(imgPtr->GetImageMetadata()));
     groundToSensorTransform->SetOutputOrigin(imgPtr->GetOrigin());
     groundToSensorTransform->SetOutputSpacing(imgPtr->GetSignedSpacing());
     groundToSensorTransform->InstantiateTransform();

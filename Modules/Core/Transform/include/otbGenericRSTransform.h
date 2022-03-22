@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -22,6 +22,8 @@
 #define otbGenericRSTransform_h
 
 #include "otbCompositeTransform.h"
+#include "otbImageMetadata.h"
+#include "otbSensorTransformFactory.h"
 #include <string>
 
 namespace otb
@@ -86,7 +88,7 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(GenericRSTransform, Transform);
 
-  typedef TransformDirection::TransformationDirection DirectionOfMappingEnumType;
+  typedef TransformDirection DirectionOfMappingEnumType;
 
   itkStaticConstMacro(InputSpaceDimension, unsigned int, NInputDimensions);
   itkStaticConstMacro(OutputSpaceDimension, unsigned int, NOutputDimensions);
@@ -100,48 +102,26 @@ public:
   itkSetStringMacro(OutputProjectionRef);
   itkGetStringMacro(OutputProjectionRef);
 
-  /** Set/Get Dictionary
-   * \deprecated
-   */
-  const itk::MetaDataDictionary& GetInputDictionary() const
+  /** Set/Get ImageMetadata*/
+  const ImageMetadata* GetInputImageMetadata() const
   {
-    return m_InputDictionary;
+    return m_InputImd;
   }
 
-  void SetInputDictionary(const itk::MetaDataDictionary& dictionary)
+  void SetInputImageMetadata(const ImageMetadata* imd)
   {
-    m_InputDictionary = dictionary;
+    m_InputImd = imd;
     this->Modified();
   }
 
-  const itk::MetaDataDictionary& GetOutputDictionary() const
+  const ImageMetadata* GetOutputImageMetadata() const
   {
-    return m_OutputDictionary;
+    return m_OutputImd;
   }
 
-  void SetOutputDictionary(const itk::MetaDataDictionary& dictionary)
+  void SetOutputImageMetadata(const ImageMetadata* imd)
   {
-    m_OutputDictionary = dictionary;
-    this->Modified();
-  }
-
-  /** Set InputKeywordlist
-   * \deprecated
-   */
-  itkGetMacro(InputKeywordList, ImageKeywordlist);
-  void SetInputKeywordList(const ImageKeywordlist& kwl)
-  {
-    this->m_InputKeywordList = kwl;
-    this->Modified();
-  }
-
-  /** Set OutputKeywordlist
-   * \deprecated
-   */
-  itkGetMacro(OutputKeywordList, ImageKeywordlist);
-  void SetOutputKeywordList(const ImageKeywordlist& kwl)
-  {
-    this->m_OutputKeywordList = kwl;
+    m_OutputImd = imd;
     this->Modified();
   }
 
@@ -199,6 +179,7 @@ protected:
   GenericRSTransform();
   ~GenericRSTransform() override
   {
+   // SensorTransformFactory<TScalarType, NInputDimensions, NOutputDimensions>::CleanFactories();
   }
 
   void Modified() const override
@@ -213,11 +194,8 @@ private:
   GenericRSTransform(const Self&) = delete;
   void operator=(const Self&) = delete;
 
-  ImageKeywordlist m_InputKeywordList;
-  ImageKeywordlist m_OutputKeywordList;
-
-  itk::MetaDataDictionary m_InputDictionary;
-  itk::MetaDataDictionary m_OutputDictionary;
+  const ImageMetadata* m_InputImd;
+  const ImageMetadata* m_OutputImd;
 
   std::string m_InputProjectionRef;
   std::string m_OutputProjectionRef;

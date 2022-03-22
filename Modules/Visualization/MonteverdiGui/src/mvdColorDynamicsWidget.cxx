@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -317,7 +317,7 @@ void ColorDynamicsWidget::SetNoDataButtonChecked(bool checked)
 /*****************************************************************************/
 void ColorDynamicsWidget::on_noDataCheckBox_toggled(bool enabled)
 {
-  emit NoDataFlagToggled(enabled);
+  Q_EMIT NoDataFlagToggled(enabled);
 }
 
 /*****************************************************************************/
@@ -330,7 +330,7 @@ void ColorDynamicsWidget::on_noDataLineEdit_textChanged(const QString& text)
   {
   }
 
-  emit NoDataValueChanged(value);
+  Q_EMIT NoDataValueChanged(value);
 }
 
 /*****************************************************************************/
@@ -348,16 +348,16 @@ void ColorDynamicsWidget::on_noDataButton_toggled(bool checked)
 
   if (checked)
   {
-    emit NoDataButtonPressed();
+    Q_EMIT NoDataButtonPressed();
   }
 }
 
 /*****************************************************************************/
 void ColorDynamicsWidget::on_gammaSlider_valueChanged(int value)
 {
-  emit GammaCursorPositionChanged(value);
+  Q_EMIT GammaCursorPositionChanged(value);
 
-  emit GammaValueChanged(GetGamma());
+  Q_EMIT GammaValueChanged(GetGamma());
 
   // Display Gamma value as a tooltip when value changed
   QToolTip::showText(mapToGlobal(m_UI->gammaSlider->pos()), tr("Gamma: ") % QString::number(GetGamma()));

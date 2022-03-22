@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -97,8 +97,9 @@ private:
                             "If no system is specified, WGS84 (EPSG: 4326) is used by default.");
     MandatoryOff("mode.epsg.code");
 
-    AddParameter(ParameterType_ListView, "cl", "Channels");
+    AddParameter(ParameterType_Band, "cl", "Channels");
     SetParameterDescription("cl", "Displayed channels");
+    SetRasterData("cl", "in");
     MandatoryOff("cl");
 
     AddParameter(ParameterType_String, "value", "Pixel Value");
@@ -166,7 +167,7 @@ private:
         std::string wktFromEpsg = otb::SpatialReference::FromEPSG(GetParameterInt("mode.epsg.code")).ToWkt();
         inverse->SetOutputProjectionRef(wktFromEpsg);
       }
-      inverse->SetInputKeywordList(inImage->GetImageKeywordlist());
+      inverse->SetInputImageMetadata(&(inImage->GetImageMetadata()));
       inverse->SetInputProjectionRef(inImage->GetProjectionRef());
       inverse->InstantiateTransform();
       itk::Point<float, 2> minPOut(0), maxPOut(0), minP(0), maxP(0);
@@ -238,7 +239,7 @@ private:
         std::string wktFromEpsg = otb::SpatialReference::FromEPSG(GetParameterInt("mode.epsg.code")).ToWkt();
         rsTransform->SetInputProjectionRef(wktFromEpsg);
       }
-      rsTransform->SetOutputKeywordList(inImage->GetImageKeywordlist());
+      rsTransform->SetOutputImageMetadata(&(inImage->GetImageMetadata()));
       rsTransform->SetOutputProjectionRef(inImage->GetProjectionRef());
       rsTransform->InstantiateTransform();
       itk::Point<float, 2> pixelIn(0), pixelOut(0);

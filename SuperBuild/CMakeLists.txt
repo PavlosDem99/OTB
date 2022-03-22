@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -285,8 +285,6 @@ option(USE_SYSTEM_OPENSSL  "Use a system build of OpenSSL" OFF)
 option(USE_SYSTEM_GDAL "Use a system build of GDAL" OFF)
 option(USE_SYSTEM_FFTW "Use a system build of FFTW" OFF)
 option(USE_SYSTEM_ITK "Use a system build of ITK" OFF)
-option(USE_SYSTEM_OPENTHREADS  "Use a system build of OpenThreads" OFF)
-option(USE_SYSTEM_OSSIM  "Use a system build of OSSIM" OFF)
 option(USE_SYSTEM_MUPARSER  "Use a system build of muParser" OFF)
 option(USE_SYSTEM_MUPARSERX "Use a system build of  muParserX" OFF)
 option(USE_SYSTEM_TINYXML  "Use a system build of TinyXML" OFF)
@@ -351,45 +349,45 @@ find_path(OTB_DATA_ROOT
 
 # SWIG Wrapping
 option(OTB_WRAP_PYTHON "Enable python wrappers for OTB applications (requires SWIG)" ON)
+option(OTB_WRAP_QGIS "Enable QGIS descriptor compilation" ON)
 
 configure_file(${CMAKE_SOURCE_DIR}/CMake/CTestCustom.cmake.in
   ${CMAKE_BINARY_DIR}/CTestCustom.cmake @ONLY)
-
-# do a system checkup
-if (NOT EXISTS "${CMAKE_BINARY_DIR}/CMake/SystemCheckup")
-  file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/CMake/SystemCheckup")
-endif()
-execute_process(COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}/CMake/SystemCheckup
-                WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/CMake/SystemCheckup
-                OUTPUT_QUIET
-                ERROR_QUIET)
-file(STRINGS "${CMAKE_BINARY_DIR}/CMake/SystemCheckup/SystemCheckupResult.txt" _SYSTEM_CHECKUP_CONTENT)
-message(STATUS "|----------------------------------------------------------")
-message(STATUS "|----------------- System checkup results -----------------")
-message(STATUS "| The following libraries have been found on your system.")
-message(STATUS "| You can choose to use them (instead of superbuild versions)")
-message(STATUS "| by setting the corresponding option USE_SYSTEM_XXX.")
-message(STATUS "|----------------------------------------------------------")
-foreach(lib ${_SYSTEM_CHECKUP_CONTENT})
-  message(STATUS "| ${lib}")
-  message(STATUS "|----------------------------------------------------------")
-endforeach()
 
 # Python
 # This should set the following variables (and more):
 #   -PYTHON_EXECUTABLE
 #   -PYTHON_INCLUDE_DIR
 #   -PYTHON_LIBRARY
-set ( Python_ADDITIONAL_VERSIONS "3;2" )
-set ( PythonInterp_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
-set ( PythonLibs_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
-find_package( PythonInterp )
-if ( OTB_WRAP_PYTHON AND ( "x${PYTHON_VERSION_MAJOR}" STREQUAL "x2" ) )
-    message (WARNING "Python3 not found. There is no longer support of \
-    wrapping in python2 in OTB, but it can still be used.")
+if(CMAKE_VERSION VERSION_LESS 3.12.0)
+  set ( Python_ADDITIONAL_VERSIONS "3;2" )
+  set ( PythonInterp_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
+  set ( PythonLibs_FIND_REQUIRED ${OTB_WRAP_PYTHON} )
+  find_package( PythonInterp )
+  if ( OTB_WRAP_PYTHON AND ( "x${PYTHON_VERSION_MAJOR}" STREQUAL "x2" ) )
+      message (WARNING "Python3 not found. There is no longer support of \
+      wrapping in python2 in OTB, but it can still be used.")
+  endif()
+  # Now that we have a python version the addditional versions should only
+  # contain the version we have to get the corresponding libs
+  set (Python_ADDITIONAL_VERSIONS "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+  find_package ( PythonLibs )
+else()
+  if(WIN32)
+    set(Python_ROOT_DIR "C:/tools/Python37-x64")
+  endif()
+  find_package( Python REQUIRED COMPONENTS Interpreter Development)
+  if(Python_FOUND)
+    message(STATUS "Python Library directory : ${Python_LIBRARY_DIRS}")
+    message(STATUS "Python Headers directory : ${Python_INCLUDE_DIRS}")
+    #For compatibility reason, we have to define these variables
+    set(PYTHON_LIBRARIES ${Python_LIBRARIES})
+    set(PYTHON_INCLUDE_DIR ${Python_INCLUDE_DIRS})
+    set(PYTHON_LIBRARY_DIR ${Python_LIBRARY_DIRS})
+    set(PYTHON_VERSION_STRING ${Python_VERSION})
+    set(PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+  endif()
 endif()
-set (Python_ADDITIONAL_VERSIONS "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-find_package ( PythonLibs )
 
 include(External_otb)
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -54,7 +54,7 @@ public:
   /** Manage a Progress event */
   void Observe(itk::Object* caller);
 
-signals:
+Q_SIGNALS:
   void SetValueChanged(int);
 
 private:

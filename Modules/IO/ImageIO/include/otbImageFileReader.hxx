@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -37,6 +37,10 @@
 #include "otbConvertPixelBuffer.h"
 #include "otbImageIOFactory.h"
 #include "otbMetaDataKey.h"
+#include "otbImageMetadata.h"
+#include "otbImageMetadataInterfaceFactory.h"
+#include "otbImageCommons.h"
+#include "otbGeomMetadataSupplier.h"
 
 #include "otbMacro.h"
 
@@ -67,7 +71,6 @@ ImageFileReader<TOutputImage, ConvertPixelTraits>::ImageFileReader()
     m_ActualIORegion(),
     m_FilenameHelper(FNameHelperType::New()),
     m_AdditionalNumber(0),
-    m_KeywordListUpToDate(false),
     m_IOComponents(0)
 {
 }
@@ -385,121 +388,54 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>::GenerateOutputInformatio
   output->SetDirection(direction); // Set the image direction cosines
   output->SetSpacing(spacing);     // Set the image spacing
 
-  if (!m_KeywordListUpToDate && !m_FilenameHelper->GetSkipGeom())
+  // detect Image supporting new ImageMetadata
+  ImageCommons* img_common = dynamic_cast<ImageCommons*>(this->GetOutput());
+  
+  // Get ImageMetadata from ImageIO
+  ImageMetadata imd = m_ImageIO->GetImageMetadata();
+
+  // Metadata Framework
+  std::string DerivatedFileName = GetDerivedDatasetSourceFileName(m_FileName);
+  std::string extension                 = itksys::SystemTools::GetFilenameLastExtension(DerivatedFileName);
+  std::string attachedGeom              = DerivatedFileName.substr(0, DerivatedFileName.size() - extension.size()) + std::string(".geom");
+  // Case 1: external geom supplied through extended filename
+  if (!m_FilenameHelper->GetSkipGeom() && m_FilenameHelper->ExtGEOMFileNameIsSet())
   {
-
-    std::string lFileNameOssimKeywordlist = GetDerivedDatasetSourceFileName(m_FileName);
-    std::string extension                 = itksys::SystemTools::GetFilenameLastExtension(lFileNameOssimKeywordlist);
-    std::string attachedGeom              = lFileNameOssimKeywordlist.substr(0, lFileNameOssimKeywordlist.size() - extension.size()) + std::string(".geom");
-
-    // Update otb Keywordlist
-    ImageKeywordlist otb_kwl;
-
-    // Case 1: external geom supplied through extended filename
-    if (m_FilenameHelper->ExtGEOMFileNameIsSet())
-    {
-      otb_kwl = ReadGeometryFromGEOMFile(m_FilenameHelper->GetExtGEOMFileName());
-      otbLogMacro(Info, << "Loading kwl metadata from external geom file " << m_FilenameHelper->GetExtGEOMFileName());
-    }
-    // Case 2: attached geom (if present)
-    else if (itksys::SystemTools::FileExists(attachedGeom))
-    {
-      otb_kwl = ReadGeometryFromGEOMFile(attachedGeom);
-      otbLogMacro(Info, << "Loading kwl metadata from attached geom file " << attachedGeom);
-    }
-    // Case 3: find an ossimPluginProjection
-    // Case 4: find an ossimProjection
-    // Case 5: find RPC tags in TIF
-    else
-    {
-      otb_kwl = ReadGeometryFromImage(lFileNameOssimKeywordlist, !m_FilenameHelper->GetSkipRpcTag());
-      if (!otb_kwl.Empty())
-      {
-        otbLogMacro(Info, << "Loading kwl metadata from official product in file " << lFileNameOssimKeywordlist);
-      }
-      else
-      {
-        // Try attached files
-        for (const std::string& path : m_ImageIO->GetAttachedFileNames())
-        {
-          otb_kwl = ReadGeometryFromImage(path, !m_FilenameHelper->GetSkipRpcTag());
-          if (!otb_kwl.Empty())
-          {
-            otbLogMacro(Info, << "Loading kwl metadata in attached file " << path);
-            break;
-          }
-        }
-        if (otb_kwl.Empty())
-        {
-          otbLogMacro(Debug, << "No kwl metadata found in file " << lFileNameOssimKeywordlist);
-        }
-      }
-    }
-
-    // Don't add an empty ossim keyword list
-    if (!otb_kwl.Empty())
-    {
-      itk::EncapsulateMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, otb_kwl);
-    }
-    /*else
-      {
-      //
-      // For image with world file, we have a non-null GeoTransform, an empty kwl, but no projection ref.
-      // Decision made here : if the keywordlist is empty, and the geotransform is not the identity,
-      // then assume the file is in WGS84
-      //
-      std::string projRef;
-      itk::ExposeMetaData(dict, MetaDataKey::ProjectionRefKey, projRef);
-
-      // Compute spacing for an identity geotransform at current resolution
-      unsigned int resolution = 0;
-      itk::ExposeMetaData<unsigned int>(dict,
-                                        MetaDataKey::ResolutionFactor,
-                                        resolution);
-      double idSpacing = 1.0;
-      if (resolution != 0)
-        idSpacing = 1.0 * std::pow((double)2.0, (double)resolution);
-
-   std::cout << "?" << std::endl;
-   std::cout << std::abs(origin[0] - 0.5 * spacing[0]) << std::endl;
-    std::cout << std::abs(origin[1] - 0.5 * spacing[1]) << std::endl;
-     std::cout << std::abs(spacing[0] - idSpacing) << std::endl;
-      std::cout << std::abs(spacing[1] - idSpacing) << std::endl;
-      const double epsilon = 1.0E-12;
-      if ( projRef.empty()
-           && std::abs(origin[0] - 0.5 * spacing[0]) > epsilon
-           && std::abs(origin[1] - 0.5 * spacing[1]) > epsilon
-           && (std::abs(spacing[0] - idSpacing) > epsilon
-           && std::abs(spacing[1] - idSpacing) > epsilon))
-        {
-            std::cout << "Force the projection ref" << std::endl;
-        std::string wgs84ProjRef =
-                "GEOGCS[\"GCS_WGS_1984\", DATUM[\"D_WGS_1984\", SPHEROID[\"WGS_1984\", 6378137, 298.257223563]],"
-                "PRIMEM[\"Greenwich\", 0], UNIT[\"Degree\", 0.017453292519943295]]";
-
-        itk::EncapsulateMetaData<std::string>(dict, MetaDataKey::ProjectionRefKey, wgs84ProjRef);
-        }
-      }*/
-
-    m_KeywordListUpToDate = true;
+    GeomMetadataSupplier geomSupplier(m_FilenameHelper->GetExtGEOMFileName(), m_FileName);
+    ImageMetadataInterfaceFactory::CreateIMI(imd, geomSupplier);
+    geomSupplier.FetchRPC(imd);
+    geomSupplier.FetchGCP(imd);
+    otbLogMacro(Info, << "Loading metadata from external geom file " << m_FilenameHelper->GetExtGEOMFileName());
   }
+  // Case 2: attached geom (if present)
+  else if (!m_FilenameHelper->GetSkipGeom() && itksys::SystemTools::FileExists(attachedGeom))
+  {
+    GeomMetadataSupplier geomSupplier(attachedGeom, m_FileName);
+    ImageMetadataInterfaceFactory::CreateIMI(imd, geomSupplier);
+    geomSupplier.FetchRPC(imd);
+    geomSupplier.FetchGCP(imd);
+    otbLogMacro(Info, << "Loading metadata from attached geom file " << attachedGeom);
+  }
+  // Case 3: tags in file
   else
   {
-    // Read back from existing dictionary
-    ImageKeywordlist otb_kwl;
-    itk::ExposeMetaData<ImageKeywordlist>(this->GetOutput()->GetMetaDataDictionary(), MetaDataKey::OSSIMKeywordlistKey, otb_kwl);
-    // And add to new one
-    itk::EncapsulateMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, otb_kwl);
+    auto gdalMetadataSupplierPointer = dynamic_cast<MetadataSupplierInterface*>(m_ImageIO.GetPointer());
+    if (gdalMetadataSupplierPointer)
+    {
+      ImageMetadataInterfaceFactory::CreateIMI(imd, *gdalMetadataSupplierPointer);
+      otbLogMacro(Info, << "Loading metadata from official product");
+    }
   }
-
 
   // If Skip ProjectionRef is activated, remove ProjRef from dict
   if (m_FilenameHelper->GetSkipCarto())
   {
     itk::EncapsulateMetaData<std::string>(dict, MetaDataKey::ProjectionRefKey, "");
+    imd.RemoveProjectedGeometry();
   }
 
   // Copy MetaDataDictionary from instantiated reader to output image.
+  // TODO: disable when Ossim removed
   if (!m_FilenameHelper->GetSkipGeom())
   {
     output->SetMetaDataDictionary(this->m_ImageIO->GetMetaDataDictionary());
@@ -514,7 +450,7 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>::GenerateOutputInformatio
     output->SetMetaDataDictionary(dictLight);
     this->SetMetaDataDictionary(dictLight);
   }
-
+  
   IndexType start;
   start.Fill(0);
 
@@ -533,7 +469,23 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>::GenerateOutputInformatio
       // invalid range
       itkGenericExceptionMacro("The given band range is either empty or invalid for a " << m_IOComponents << " bands input image!");
     }
+    // ImageIO returned the metadata from all bands of the input raster. It needs to be adapted to the layout of m_BandList
+    ImageMetadata::ImageMetadataBandsType bandRangeMetadata;
+    for (auto elem: m_BandList)
+    {
+      bandRangeMetadata.push_back(imd.Bands[elem]);
+    }
+    imd.Bands = bandRangeMetadata;
     m_IOComponents = m_BandList.size();
+  }
+
+  // Delete band metadata if the Conversion policy changed the number of bands, in the case of 
+  // grayscale to RGB for example. Because we cannot know how the metadata should be mapped.
+  // TODO: define proper behavior in this case.
+  using ConvertIOPixelTraits = otb::DefaultConvertPixelTraits<typename TOutputImage::IOPixelType>;
+  if (strcmp(output->GetNameOfClass(), "Image") == 0 && !(this->m_ImageIO->GetNumberOfComponents() == ConvertIOPixelTraits::GetNumberOfComponents()))
+  {
+    imd.Bands = ImageMetadata::ImageMetadataBandsType (ConvertIOPixelTraits::GetNumberOfComponents());
   }
 
   // THOMAS : ajout
@@ -545,19 +497,24 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>::GenerateOutputInformatio
     AccessorFunctorType::SetVectorLength(output, m_IOComponents);
   }
 
+  if (img_common != nullptr)
+    {
+    img_common->SetImageMetadata(imd);
+    }
+
   output->SetLargestPossibleRegion(region);
 }
 
 template <class TOutputImage, class ConvertPixelTraits>
-std::string ImageFileReader<TOutputImage, ConvertPixelTraits>::GetDerivedDatasetSourceFileName(const std::string& filename) const
+std::string ImageFileReader<TOutputImage, ConvertPixelTraits>::GetDerivedDatasetSourceFileName(const std::string& filename)
 {
 
-  const size_t dsds_pos = filename.find(DerivedSubdatasetPrefix);
+  const size_t dsds_pos = filename.find(otb::DerivedSubdatasetPrefix);
 
   if (dsds_pos != std::string::npos)
   {
     // Derived subdataset from gdal
-    const size_t alg_pos = filename.find(":", dsds_pos + DerivedSubdatasetPrefixLength);
+    const size_t alg_pos = filename.find(":", dsds_pos + otb::DerivedSubdatasetPrefixLength);
     if (alg_pos != std::string::npos)
     {
       std::string sourceFilename = filename.substr(alg_pos + 1, filename.size() - alg_pos);
@@ -667,26 +624,11 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>::SetFileName(const std::s
     if (oldMap.size() != newMap.size() || !std::equal(oldMap.begin(), oldMap.end(), newMap.begin()))
     {
       this->Modified();
-
-      // Now check if keywordlist needs to be generated again
-      // Condition is: one of the old or new map has the skip_geom
-      // key and the other does not
-      // OR
-      // one of the old or new map has the geom key and the other
-      // does not
-      // OR
-      // both have the geom key but the geom value is different
-      if ((oldMap.count(skip_geom_key) != newMap.count(skip_geom_key)) || (oldMap.count(geom_key) != newMap.count(geom_key)) ||
-          ((oldMap.count(geom_key) && newMap.count(geom_key)) && oldMap.find(geom_key)->second != newMap.find(geom_key)->second))
-      {
-        m_KeywordListUpToDate = false;
-      }
     }
   }
   else
   {
     this->m_FileName      = simpleFileName;
-    m_KeywordListUpToDate = false;
     this->Modified();
   }
 

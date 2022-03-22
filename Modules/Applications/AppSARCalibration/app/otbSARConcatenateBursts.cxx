@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -121,7 +121,7 @@ private:
     unsigned int nbBursts = 1;
     try
     {
-      nbBursts = std::stoi(in->GetImageKeywordlist().GetMetadataByKey("support_data.geom.bursts.number"));
+      nbBursts = boost::any_cast<const otb::SARParam&>(in->GetImageMetadata()[otb::MDGeom::SAR]).burstRecords.size();
     }
     catch (...)
     {
@@ -137,15 +137,13 @@ private:
   }*/
 
     // Coniguration for fusion filter
-    fusionFilter->SetSLCImageKeyWorList(in->GetImageKeywordlist());
+    fusionFilter->SetSLCImageMetadata(in->GetImageMetadata());
     // Get Invalid pixel Key (from Image 0)
     FloatVectorImageType::Pointer Im0 = inList->GetNthElement(0);
     Im0->UpdateOutputInformation();
 
-    auto const& kwl = Im0->GetImageKeywordlist();
-
-    const bool inputWithInvalidPixels = kwl.HasKey("support_data.invalid_pixels") && kwl.GetMetadataByKey("support_data.invalid_pixels") == "yes";
-
+    auto const & imd = Im0->GetImageMetadata();
+    const bool inputWithInvalidPixels = imd.Has("invalid_pixels") && imd["invalid_pixels"] == "yes";
 
     fusionFilter->getDeburstLinesAndSamples(lines, samples, burst_index, inputWithInvalidPixels);
 
@@ -156,13 +154,13 @@ private:
       vectIm->UpdateOutputInformation();
 
       // Check invalid Pixel Key
-      const bool inputWithInvalidPixels_loop = vectIm->GetImageKeywordlist().HasKey("support_data.invalid_pixels") &&
-                                               vectIm->GetImageKeywordlist().GetMetadataByKey("support_data.invalid_pixels") == "yes";
+      const bool inputWithInvalidPixels_loop = vectIm->GetImageMetadata().Has("invalid_pixels") &&
+                                               vectIm->GetImageMetadata()["support_data.invalid_pixels"] == "yes";
 
       if (inputWithInvalidPixels_loop != inputWithInvalidPixels)
       {
         // Throw an exception
-        otbAppLogFATAL(<< "Incoherency between input images (for support_data.invalid_pixels key).");
+        otbAppLogFATAL(<< "Incoherency between input images (for invalid_pixels key).");
       }
 
       unsigned long originOffset_samples = static_cast<long>(vectIm->GetOrigin()[0] - 0.5);

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -20,7 +20,7 @@
 
 ##### check if standalone project ######
 if(NOT PROJECT_NAME)
-  cmake_minimum_required(VERSION 3.1.0)
+  cmake_minimum_required(VERSION 3.10.0)
   project(OTBExamples)
 endif()
 
@@ -153,6 +153,11 @@ endif()
 find_package(OTB REQUIRED)
 include(${OTB_USE_FILE})
 message(STATUS "Found OTB: ${OTB_USE_FILE}")
+
+if(WIN32)
+  add_definitions( -DBOOST_ALL_NO_LIB )
+  add_definitions( -DBOOST_ALL_DYN_LINK )
+endif()
 
 set(OTB_TEST_DRIVER otbTestDriver)
 

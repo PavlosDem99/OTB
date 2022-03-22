@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -134,7 +134,8 @@ public:
   itkBooleanMacro(AllTouchedMode);
 
   /** Useful to set the output parameters from an existing image*/
-  void SetOutputParametersFromImage(const ImageBaseType* image);
+  template <class ImagePointerType>
+  void SetOutputParametersFromImage(const ImagePointerType image);
 
 protected:
   void GenerateData() override;

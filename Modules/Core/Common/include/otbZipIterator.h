@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -21,6 +21,7 @@
 #ifndef otbZipIterator_h
 #define otbZipIterator_h
 
+#include "otbIteratorHelpers.h"
 #include "otbSpan.h"
 #include "itkMacro.h"
 #include <type_traits>
@@ -31,9 +32,6 @@ namespace otb
 {
 namespace internals
 {
-
-struct ConstTag {};
-struct MutableTag {};
 
 /**
  * Wrapper to present list of iterators as a single iterator.

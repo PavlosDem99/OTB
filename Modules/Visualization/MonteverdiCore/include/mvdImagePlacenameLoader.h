@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -78,11 +78,11 @@ public:
   /** \brief Constructor */
   ImagePlacenameLoader(VectorImageModel* model);
 
-public slots:
+public Q_SLOTS:
   /** \brief load the placename */
   void LoadPlacename();
 
-signals:
+Q_SIGNALS:
   /** \brief Triggered after a non empty placename was loaded */
   void PlacenameLoaded(const QString&);
 

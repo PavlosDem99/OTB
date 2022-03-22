@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -81,7 +81,7 @@ private:
     AddParameter(ParameterType_InputFilename, "in.vd", "Input vector data");
     SetParameterDescription("in.vd", "The input vector data to reproject");
     AddParameter(ParameterType_InputImage, "in.kwl", "Use image keywords list");
-    SetParameterDescription("in.kwl", "Optional input image to fill vector data with image kwl.");
+    SetParameterDescription("in.kwl", "Optional input image to fill vector data with image metadata.");
     MandatoryOff("in.kwl");
     DisableParameter("in.kwl");
 
@@ -134,7 +134,7 @@ private:
     if (HasValue("in.kwl"))
     {
       FloatVectorImageType::Pointer inImage = GetParameterFloatVectorImage("in.kwl");
-      m_GeometriesProjFilter->SetInputKeywordList(inImage->GetImageKeywordlist());
+      m_GeometriesProjFilter->SetInputImageMetadata(&(inImage->GetImageMetadata()));
       // otbAppLogINFO(<<"kwl."<<std::endl);
     }
 
@@ -147,7 +147,7 @@ private:
         m_OutputProjectionRef = outImage->GetProjectionRef(); // ~ wkt
         if (m_OutputProjectionRef.empty())
         {
-          m_GeometriesProjFilter->SetOutputKeywordList(outImage->GetImageKeywordlist()); // nec qd capteur
+          m_GeometriesProjFilter->SetOutputImageMetadata(&(outImage->GetImageMetadata()));
         }
       }
       else
@@ -176,7 +176,6 @@ private:
 
   otb::ogr::DataSource::Pointer OGRDSout;
   std::string                   m_OutputProjectionRef;
-  ImageKeywordlist              m_KeywordList;
   InputGeometriesType::Pointer  m_InputGeomSet;
   OutputGeometriesType::Pointer m_OutputGeomSet;
   // FloatVectorImageType::Pointer m_inImage;

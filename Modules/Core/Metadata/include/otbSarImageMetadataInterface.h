@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -28,6 +28,7 @@
 #include "itkPointSet.h"
 #include "otbSarCalibrationLookupData.h"
 #include "otbStringUtils.h"
+#include "otbSARMetadata.h"
 
 namespace otb
 {
@@ -51,10 +52,10 @@ public:
 
   typedef Superclass::ImageType                ImageType;
   typedef ImageType::IndexType                 IndexType;
+  typedef std::array<int, 2>                   ArrayIndexType;
   typedef Superclass::MetaDataDictionaryType   MetaDataDictionaryType;
   typedef Superclass::VectorType               VectorType;
   typedef Superclass::VariableLengthVectorType VariableLengthVectorType;
-  typedef Superclass::ImageKeywordlistType     ImageKeywordlistType;
   typedef Superclass::UIntVectorType           UIntVectorType;
   typedef Superclass::StringVectorType         StringVectorType;
   typedef itk::PointSet<double, 2> PointSetType;
@@ -64,63 +65,52 @@ public:
   typedef SarCalibrationLookupData LookupDataType;
   typedef LookupDataType::Pointer  LookupDataPointerType;
 
-  virtual void CreateCalibrationLookupData(const short t);
+  virtual bool CreateCalibrationLookupData(SARCalib&, const ImageMetadata&, const MetadataSupplierInterface&, const bool) const;
 
-  const LookupDataPointerType GetCalibrationLookupData(const short type);
-
-  bool HasCalibrationLookupDataFlag() const;
-
-  void SetCalibrationLookupData(LookupDataType* lut)
-  {
-    m_SarLut = lut;
-  }
-
-  virtual RealType GetRadiometricCalibrationScale() const;
+  virtual bool HasCalibrationLookupDataFlag(const MetadataSupplierInterface&) const;
 
   virtual PointSetPointer GetRadiometricCalibrationAntennaPatternNewGain() const;
   virtual PointSetPointer GetRadiometricCalibrationAntennaPatternOldGain() const;
-  virtual PointSetPointer GetRadiometricCalibrationIncidenceAngle() const;
+  virtual PointSetPointer GetRadiometricCalibrationIncidenceAngle(const MetadataSupplierInterface &) const;
   virtual PointSetPointer GetRadiometricCalibrationRangeSpreadLoss() const;
-  virtual PointSetPointer GetRadiometricCalibrationNoise() const;
+  virtual PointSetPointer GetRadiometricCalibrationNoise(const MetadataSupplierInterface&, const ImageMetadata&, const std::string& b="") const;
 
-  virtual IndexType GetRadiometricCalibrationAntennaPatternNewGainPolynomialDegree() const;
-  virtual IndexType GetRadiometricCalibrationAntennaPatternOldGainPolynomialDegree() const;
-  virtual IndexType GetRadiometricCalibrationIncidenceAnglePolynomialDegree() const;
-  virtual IndexType GetRadiometricCalibrationRangeSpreadLossPolynomialDegree() const;
-  virtual IndexType GetRadiometricCalibrationNoisePolynomialDegree() const;
+  virtual ArrayIndexType GetRadiometricCalibrationAntennaPatternNewGainPolynomialDegree() const;
+  virtual ArrayIndexType GetRadiometricCalibrationAntennaPatternOldGainPolynomialDegree() const;
+  virtual ArrayIndexType GetRadiometricCalibrationIncidenceAnglePolynomialDegree() const;
+  virtual ArrayIndexType GetRadiometricCalibrationRangeSpreadLossPolynomialDegree() const;
+  virtual ArrayIndexType GetRadiometricCalibrationNoisePolynomialDegree() const;
 
-  virtual double GetPRF() const                  = 0;
-  virtual double GetRSF() const                  = 0;
-  virtual double GetRadarFrequency() const       = 0;
-  virtual double GetCenterIncidenceAngle() const = 0;
+  virtual double GetCenterIncidenceAngle(const MetadataSupplierInterface& mds) const = 0;
 
 
   virtual double GetRescalingFactor() const;
 
-  virtual const std::string GetProductType() const;
+  virtual void ParseGdal(ImageMetadata &) =0;
+  virtual void ParseGeom(ImageMetadata &) =0;
 
-  virtual const std::string GetAcquisitionMode() const;
+  bool GetSAR(SARParam &) const;
+  std::vector<AzimuthFmRate> GetAzimuthFmRateGeom() const;
+  std::vector<DopplerCentroid> GetDopplerCentroidGeom() const;
+  std::vector<Orbit> GetOrbitsGeom() const;
+  std::vector<BurstRecord> GetBurstRecordsGeom() const;
 
-  /** Get the enhanced band names (No enhanced band name support for SAR) */
-  StringVectorType GetEnhancedBandNames() const override
-  {
-    StringVectorType nothing;
-    return nothing;
-  }
+  /**
+   * @brief Loads the radiometric calibration data to the SARCalib
+   * @param sarCalib The SARCalib objct to complete
+   * @param mds The MetadataSupplierInterface containing the calibration data
+   * @param imd The ImageMetadata containing the calibration data
+   */
+  void LoadRadiometricCalibrationData(SARCalib& sarCalib, const MetadataSupplierInterface& mds, const ImageMetadata& imd, const std::string &band="") const;
 
 protected:
   SarImageMetadataInterface();
-  ~SarImageMetadataInterface() override
-  {
-  }
+  ~SarImageMetadataInterface() override = default;
 
   PointSetPointer GetConstantValuePointSet(const RealType& value) const;
-  IndexType GetConstantPolynomialDegree() const;
+  ArrayIndexType GetConstantPolynomialDegree() const;
 
   void PrintSelf(std::ostream& os, itk::Indent indent) const override;
-
-  LookupDataPointerType m_SarLut;
-
 
 private:
   SarImageMetadataInterface(const Self&) = delete;

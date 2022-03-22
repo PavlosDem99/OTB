@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -26,6 +26,7 @@
 #include "otbImageReference.h"
 #include "itkTransform.h"
 #include "otbGenericRSTransform.h"
+#include "otbImageMetadata.h"
 
 #include "OTBProjectionExport.h"
 #include <string>
@@ -143,21 +144,20 @@ private:
  * \since OTB v 3.14.0
  *
  * \param[in] InputGeometriesSet
- * \param[in] InputKeywordList if the \em InputGeometriesSet doesn't have a
+ * \param[in] InputImageMetadata if the \em InputGeometriesSet doesn't have a
  * projection reference (i.e. a \c OGRSpatialReference), this filter will use
- * the \em InputKeywordList to describe the positioning of the geometries set.
+ * the \em InputImageMetadata to describe the positioning of the geometries set.
  *
  * \param[in,out] OutputGeometriesSet This set of geometries needs to be given to
  * the filter (in order to set the exact output file/OGR driver). However the
  * filter is in charge of filling the geometries set.
  * \param[in] OutputProjectionRef wkt description of the \c OGRSpatialReference
  * to project the \em InputGeometriesSet into.
- * \param[in] OutputKeywordList if no \em OutputProjectionRef is set, the
- * projection will be done according to the \em OutputKeywordList.
+ * \param[in] OutputImageMetadata if no \em OutputProjectionRef is set, the
+ * projection will be done according to the \em OutputImageMetadata.
  *
  * \note Unlike \c VectorDataProjectionFilter, we have to explicitly set which
- * to use between projection reference or keyword list. There is no \em
- * MetaDataDictionary property.
+ * to use between projection reference or ImageMetadata.
  *
  * \note This filter does not support \em in-place transformation as the spatial
  * references of the new layer are expected to change.
@@ -252,14 +252,29 @@ public:
   void SetInputOrigin(ImageReference::OriginType const& origin);
   void SetOutputOrigin(ImageReference::OriginType const& origin);
   //@}
-  /**\name Keywords lists accessors and mutators 
-     \deprecated */
-  //@{
-  itkGetMacro(InputKeywordList, ImageKeywordlist);
-  void SetInputKeywordList(const ImageKeywordlist& kwl);
 
-  itkGetMacro(OutputKeywordList, ImageKeywordlist);
-  void SetOutputKeywordList(const ImageKeywordlist& kwl);
+  /**\name ImageMetadata accessors and mutators */
+  //@{
+  const ImageMetadata* GetInputImageMetadata() const
+  {
+    return m_InputImageMetadata;
+  }
+
+  void SetInputImageMetadata(const ImageMetadata* imd)
+  {
+    m_InputImageMetadata = imd;
+    this->Modified();
+  }
+
+  const ImageMetadata* GetOutputImageMetadata() const
+  {
+    return m_OutputImageMetadata;
+  }
+  void SetOutputImageMetadata(const ImageMetadata* imd)
+    {
+      m_OutputImageMetadata = imd;
+      this->Modified();
+    }
   //@}
 
   /**\name Projection references accessors and mutators
@@ -297,8 +312,8 @@ private:
   //@}
 
   std::string      m_OutputProjectionRef; // in WKT format!
-  ImageKeywordlist m_InputKeywordList;
-  ImageKeywordlist m_OutputKeywordList;
+  const ImageMetadata*   m_InputImageMetadata = nullptr;
+  const ImageMetadata*   m_OutputImageMetadata = nullptr;
 };
 } // end namespace otb
 

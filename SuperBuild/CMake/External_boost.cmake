@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -46,22 +46,22 @@ set( boost_libraries_to_build "system;serialization;filesystem;test;date_time;pr
 # add libraries to b2 option
 set(BOOST_SB_CONFIG)
 foreach(lib ${boost_libraries_to_build})
-  set(BOOST_SB_CONFIG 
+  set(BOOST_SB_CONFIG
     ${BOOST_SB_CONFIG}
     --with-${lib})
 endforeach(lib)
 
-# This is needed because otherwise boost is building both x32 and x64 lib 
+# This is needed because otherwise boost is building both x32 and x64 lib
 # (on wndows) and during packages on win32 we are installing all libs.
 # See Packaging/install_importlibs.cmake
 
 if ( WIN32 )
   if(OTB_TARGET_SYSTEM_ARCH_IS_X64)
-    set(BOOST_SB_CONFIG 
+    set(BOOST_SB_CONFIG
       ${BOOST_SB_CONFIG}
       address-model=64)
   else()
-    set(BOOST_SB_CONFIG 
+    set(BOOST_SB_CONFIG
       ${BOOST_SB_CONFIG}
       address-model=32)
   endif()
@@ -89,8 +89,8 @@ set(BOOST_BUILD_COMMAND ${CMAKE_COMMAND}
 #NOTE: update _SB_Boost_INCLUDE_DIR below when you change version number
 ExternalProject_Add(BOOST
   PREFIX BOOST
-  URL "http://downloads.sourceforge.net/project/boost/boost/1.69.0/boost_1_69_0.tar.bz2"
-  URL_MD5 a1332494397bf48332cb152abfefcec2
+  URL "https://downloads.sourceforge.net/project/boost/boost/1.72.0/boost_1_72_0.tar.bz2"
+  URL_MD5 cb40943d2a2cb8ce08d42bc48b0f84f0
   BINARY_DIR ${BOOST_SB_BUILD_DIR}
   INSTALL_DIR ${SB_INSTALL_PREFIX}
   DOWNLOAD_DIR ${DOWNLOAD_LOCATION}
@@ -100,13 +100,13 @@ ExternalProject_Add(BOOST
   LOG_DOWNLOAD 1
   LOG_CONFIGURE 1
   LOG_BUILD 1
-  LOG_INSTALL 1  
+  LOG_INSTALL 1
 )
 
 #HINT: avoid all uses of  _SB_* in External_<project>.cmake
 # and depend on much saner CMAKE_PREFIX_PATH for cmake projects.
 if(MSVC)
-  set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include/boost-1_69)
+  set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include/boost-1_72)
 else()
   set(_SB_Boost_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include)
 endif()

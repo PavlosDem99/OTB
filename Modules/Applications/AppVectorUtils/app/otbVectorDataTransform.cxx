@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -148,7 +148,7 @@ private:
     m_VectorDataProj = VectorDataProjectionFilterType::New();
     m_VectorDataProj->SetInput(vd);
     m_VectorDataProj->SetInputProjectionRef(vd->GetProjectionRef());
-    m_VectorDataProj->SetOutputKeywordList(inImage->GetImageKeywordlist());
+    m_VectorDataProj->SetOutputImageMetadata(&inImage->GetImageMetadata());
     m_VectorDataProj->SetOutputProjectionRef(inImage->GetProjectionRef());
 
     // Set up the transform
@@ -174,7 +174,7 @@ private:
     m_ReverseVectorDataProj = VectorDataProjectionFilterType::New();
     m_ReverseVectorDataProj->SetInput(m_TransformFilter->GetOutput());
     m_ReverseVectorDataProj->SetOutputProjectionRef(vd->GetProjectionRef());
-    m_ReverseVectorDataProj->SetInputKeywordList(inImage->GetImageKeywordlist());
+    m_ReverseVectorDataProj->SetInputImageMetadata(&inImage->GetImageMetadata());
     m_ReverseVectorDataProj->SetInputProjectionRef(inImage->GetProjectionRef());
 
     // Set the output image

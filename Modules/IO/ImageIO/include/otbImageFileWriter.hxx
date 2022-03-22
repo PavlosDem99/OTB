@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  * Copyright (C) 2018-2020 CS Systemes d'Information (CS SI)
  *
  * This file is part of Orfeo Toolbox
@@ -33,8 +33,8 @@
 #include "itkImageRegionIterator.h"
 
 #include "itkMetaDataObject.h"
-#include "otbImageKeywordlist.h"
 #include "otbMetaDataKey.h"
+#include "otbImageCommons.h"
 
 #include "otbConfigure.h"
 
@@ -554,6 +554,12 @@ void ImageFileWriter<TInputImage>::GenerateOutputInformation(void)
   m_ImageIO->SetUseCompression(m_UseCompression);
   m_ImageIO->SetMetaDataDictionary(inputPtr->GetMetaDataDictionary());
 
+  const ImageCommons* img_common = dynamic_cast<const ImageCommons*>(inputPtr.GetPointer());
+  if (img_common != nullptr)
+    {
+    m_ImageIO->SetImageMetadata(img_common->GetImageMetadata());
+    }
+
   /** Create Image file */
   // Setup the image IO for writing.
   //
@@ -659,16 +665,6 @@ void ImageFileWriter<TInputImage>::Update()
     m_IsObserving = false;
     source->RemoveObserver(m_ObserverID);
   }
-
-  // Write the image keyword list if any
-  // ossimKeywordlist geom_kwl;
-  // ImageKeywordlist otb_kwl;
-
-  // itk::MetaDataDictionary dict = this->GetInput()->GetMetaDataDictionary();
-  // itk::ExposeMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, otb_kwl);
-  // otb_kwl.convertToOSSIMKeywordlist(geom_kwl);
-  // FIXME: why nothing is done with otb_kwl in that case???
-  // If required, put a call to WriteGeometry() here
 
   /**
    * Release any inputs if marked for release
@@ -796,14 +792,6 @@ void ImageFileWriter<TInputImage>::GenerateData(void)
   }
 
   m_ImageIO->Write(dataPtr);
-
-  if (m_WriteGeomFile || m_FilenameHelper->GetWriteGEOMFile())
-  {
-    ImageKeywordlist        otb_kwl;
-    itk::MetaDataDictionary dict = this->GetInput()->GetMetaDataDictionary();
-    itk::ExposeMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, otb_kwl);
-    WriteGeometry(otb_kwl, this->GetFileName());
-  }
 }
 
 template <class TInputImage>

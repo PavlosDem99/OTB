@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,7 +25,6 @@
 #include "otbVarSol.h"
 #include "otbUnaryImageFunctorWithVectorImageFilter.h"
 #include "otbMacro.h"
-#include "otbOpticalImageMetadataInterfaceFactory.h"
 #include <iomanip>
 
 namespace otb
@@ -244,26 +243,29 @@ protected:
   /** Update the functor list and input parameters */
   void BeforeThreadedGenerateData(void) override
   {
-    OpticalImageMetadataInterface::Pointer imageMetadataInterface = OpticalImageMetadataInterfaceFactory::CreateIMI(this->GetInput()->GetMetaDataDictionary());
-    if ((m_Day == 0) && (!m_IsSetFluxNormalizationCoefficient) && (!m_IsSetSolarDistance))
+    const auto & metadata = this->GetInput()->GetImageMetadata();
+
+    if (m_Day == 0 && (!m_IsSetFluxNormalizationCoefficient) && (!m_IsSetSolarDistance) 
+        && metadata.Has(MDTime::AcquisitionDate))
     {
-      m_Day = imageMetadataInterface->GetDay();
+      m_Day = metadata[MDTime::AcquisitionDate].GetDay();
     }
 
-    if ((m_Month == 0) && (!m_IsSetFluxNormalizationCoefficient) && (!m_IsSetSolarDistance))
+    if (m_Month == 0 && (!m_IsSetFluxNormalizationCoefficient) && (!m_IsSetSolarDistance) 
+        && metadata.Has(MDTime::AcquisitionDate))
     {
-      m_Month = imageMetadataInterface->GetMonth();
+      m_Month = metadata[MDTime::AcquisitionDate].GetMonth();
     }
 
-    if (m_SolarIllumination.GetSize() == 0)
+    if (m_SolarIllumination.GetSize() == 0 && metadata.HasBandMetadata(MDNum::SolarIrradiance))
     {
-      m_SolarIllumination = imageMetadataInterface->GetSolarIrradiance();
+      m_SolarIllumination = metadata.GetAsVector(MDNum::SolarIrradiance);
     }
 
-    if (m_ZenithalSolarAngle == 120.0)
+    if (m_ZenithalSolarAngle == 120.0 && metadata.Has(MDNum::SunElevation))
     {
       // the zenithal angle is the complementary of the elevation angle
-      m_ZenithalSolarAngle = 90.0 - imageMetadataInterface->GetSunElevation();
+      m_ZenithalSolarAngle = 90.0 - metadata[MDNum::SunElevation];
     }
 
     otbMsgDevMacro(<< "Using correction parameters: ");

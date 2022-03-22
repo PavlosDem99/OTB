@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -23,10 +23,18 @@
 
 #include <string>
 #include <vector>
+#include <cstdio>
+#include <unordered_map>
+
+#include <boost/bimap.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "itkDataObject.h"
 #include "itkVariableLengthVector.h"
+
 #include "OTBMetadataExport.h"
+#include "otbStringUtils.h"
+#include "otbJoinContainer.h"
 
 namespace otb
 {
@@ -58,9 +66,6 @@ extern OTBMetadata_EXPORT char const* ColorTableNameKey;
 extern OTBMetadata_EXPORT char const* ColorEntryCountKey;
 extern OTBMetadata_EXPORT char const* ColorEntryAsRGBKey;
 
-extern OTBMetadata_EXPORT char const* OSSIMKeywordlistKey;
-extern OTBMetadata_EXPORT char const* OSSIMKeywordlistDelimiterKey;
-
 extern OTBMetadata_EXPORT char const* VectorDataKeywordlistKey;
 extern OTBMetadata_EXPORT char const* VectorDataKeywordlistDelimiterKey;
 
@@ -82,9 +87,8 @@ enum KeyType
   TSTRING,
   TENTIER,
   TDOUBLE,
-  TOTB_GCP,
+  TGCP,
   TVECTOR,
-  TOSSIMKEYWORDLIST,
   TVECTORDATAKEYWORDLIST,
   TBOOLVECTOR
 };
@@ -117,43 +121,228 @@ typedef std::vector<bool>                 BoolVectorType;
 typedef itk::VariableLengthVector<double> VariableLengthVectorType;
 }
 
-/** \class OTB_GCP
- *
- * \brief This OTB_GCP class is used to manage the GCP parameters
- * in OTB.
- *
- *
- * \ingroup OTBMetadata
- */
-class OTBMetadata_EXPORT OTB_GCP
+/** Metadata as double*/
+enum class MDNum
+{
+// generic
+  TileHintX,
+  TileHintY,
+  DataType,
+  NoData,
+  OrbitNumber,
+  NumberOfLines,
+  NumberOfColumns,
+  AverageSceneHeight,
+// Display
+  RedDisplayChannel,
+  GreenDisplayChannel,
+  BlueDisplayChannel,
+// optical section
+  PhysicalGain,
+  PhysicalBias,
+  SolarIrradiance,
+  SunElevation,
+  SunAzimuth,
+  SatElevation,
+  SatAzimuth,
+  SpectralStep,
+  SpectralMin,
+  SpectralMax,
+// SAR section
+  CalScale,
+  CalFactor,
+  PRF,
+  RSF,
+  RadarFrequency,
+  CenterIncidenceAngle,
+  RescalingFactor,
+  LineSpacing,
+  PixelSpacing,
+  RangeTimeFirstPixel,
+  RangeTimeLastPixel,
+  AbsoluteCalibrationConstant,
+  END
+};
+
+/** Metadata as std::string */
+enum class MDStr
+{
+  SensorID,
+  Mission,
+  Instrument,
+  InstrumentIndex,
+  BandName,
+  EnhancedBandName,
+  ProductType,
+  GeometricLevel,
+  RadiometricLevel,
+  Polarization,
+  Mode,
+  Swath,
+  OrbitDirection,
+  BeamMode,
+  BeamSwath,
+  AreaOrPoint,
+  LayerType,
+  MetadataType,
+  OtbVersion,
+  END
+};
+
+/** Metadata as LUT 1D */
+enum class MDL1D
+{
+  SpectralSensitivity,
+  END
+};
+
+/** Metadata as LUT 2D */
+enum class MDL2D
+{
+  // Sar calibration lut ...
+  END
+};
+
+/** Metadata as Time */
+enum class MDTime
+{
+  AcquisitionDate,
+  ProductionDate,
+  AcquisitionStartTime,
+  AcquisitionStopTime,
+  END
+};
+
+enum class MDGeom
+{
+  ProjectionWKT,  // -> string
+  ProjectionEPSG, // -> int
+  ProjectionProj, // -> string
+  RPC,            // -> RPCParam
+  SAR,            // -> SARParam
+  SARCalib,       // -> SARCalib
+  SensorGeometry, // -> boost::any
+  GCP,            // -> GCPParam
+  Adjustment,     // -> ?
+  END
+};
+
+namespace MetaData
+{
+
+using Keywordlist = std::unordered_map<std::string, std::string>;
+
+struct LUTAxis
+{
+  /** number of measurements on this axis */
+  int Size;
+  /** start value on the axis */
+  double Origin;
+  /** spacing between measurements (if regular sampling) */
+  double Spacing;
+  /** list of measurements (if irregular sampling) */
+  std::vector<double> Values;
+  /** Export to JSON */
+  std::string ToJSON(bool multiline=false) const;
+
+  friend bool operator==(const LUTAxis & lhs, const LUTAxis & rhs)
+  {
+    return lhs.Size == rhs.Size
+        && lhs.Origin == rhs.Origin
+        && lhs.Spacing == rhs.Spacing
+        && lhs.Values == rhs.Values;
+  }
+};
+
+template <unsigned int VDim> class LUT
 {
 public:
-  /** Unique identifier, often numeric */
-  std::string m_Id;
+  LUTAxis Axis[VDim];
+  
+  std::vector<double> Array;
 
-  /** Informational message or "" */
-  std::string m_Info;
+  std::string OTBMetadata_EXPORT ToJSON(bool multiline=false) const;
 
-  /** Pixel (x) location of GCP on raster */
-  double m_GCPCol;
+  std::string OTBMetadata_EXPORT ToString() const;
 
-  /** Line (y) location of GCP on raster */
-  double m_GCPRow;
+  void OTBMetadata_EXPORT FromString(std::string);
 
-  /** X position of GCP in georeferenced space */
-  double m_GCPX;
+  friend bool operator==(const LUT<VDim> & lhs, const LUT<VDim> & rhs)
+  {
+    return std::equal(std::begin(lhs.Array), std::end(lhs.Array), std::begin(rhs.Array) ) 
+            && lhs.Array == rhs.Array;
+  }
 
-  /** Y position of GCP in georeferenced space */
-  double m_GCPY;
-
-  /** Elevation of GCP, or zero if not known */
-  double m_GCPZ;
-
-  OTB_GCP();
-  ~OTB_GCP();
-
-  void Print(std::ostream& os) const;
 };
+
+
+template <unsigned int VDim>
+std::ostream& operator<<(std::ostream& os, const LUT<VDim>& val)
+{
+  os << val.ToString();
+  return os;
+}
+
+
+typedef LUT<1> LUT1D;
+
+typedef LUT<2> LUT2D;
+
+template <typename T>
+inline boost::bimap<T, std::string> bimapGenerator(std::map<T, std::string> inMap)
+{
+  boost::bimap<T, std::string> bm;
+  for (const auto& kv : inMap)
+    bm.insert({kv.first, kv.second});
+    //bm.insert(typename boost::bimap<T, std::string>::value_type(kv.first, kv.second));
+  return bm;
+}
+
+typedef boost::bimap<MDGeom, std::string> MDGeomBmType;
+extern OTBMetadata_EXPORT MDGeomBmType MDGeomNames;
+
+typedef boost::bimap<MDNum, std::string> MDNumBmType;
+extern OTBMetadata_EXPORT MDNumBmType MDNumNames;
+
+typedef boost::bimap<MDStr, std::string> MDStrBmType;
+extern OTBMetadata_EXPORT MDStrBmType MDStrNames;
+
+typedef boost::bimap<MDTime, std::string> MDTimeBmType;
+extern OTBMetadata_EXPORT MDTimeBmType MDTimeNames;
+
+typedef boost::bimap<MDL1D, std::string> MDL1DBmType;
+extern OTBMetadata_EXPORT MDL1DBmType MDL1DNames;
+
+typedef boost::bimap<MDL2D, std::string> MDL2DBmType;
+extern OTBMetadata_EXPORT MDL2DBmType MDL2DNames;
+
+template<class T>
+std::string EnumToString(T t);
+
+template<>
+std::string EnumToString(MDGeom value);
+
+template<>
+std::string EnumToString(MDNum value);
+
+template<>
+std::string EnumToString(MDStr value);
+
+template<>
+std::string EnumToString(MDL1D value);
+
+template<>
+std::string EnumToString(MDL2D value);
+
+template<>
+std::string EnumToString(MDTime value);
+
+// Specialization for extra keys
+template<>
+std::string EnumToString(std::string value);
+
+
+} // end namespace MetaData
 
 } // end namespace otb
 

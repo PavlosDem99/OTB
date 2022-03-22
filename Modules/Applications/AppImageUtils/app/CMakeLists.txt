@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -17,11 +17,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-otb_create_application(
-  NAME           DownloadSRTMTiles
-  SOURCES        otbDownloadSRTMTiles.cxx
-  LINK_LIBRARIES ${${otb-module}_LIBRARIES})
 
 otb_create_application(
   NAME           PixelValue

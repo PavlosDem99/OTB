@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -30,7 +30,7 @@ int otbDEMToImageGeneratorTest(int argc, char* argv[])
   {
     std::cout
         << argv[0]
-        << " folder path , output filename , Longitude Output Orign point , Latitude Output Origin point , X Output Size, Y Output size , X Spacing , Y Spacing"
+        << " folder path , output filename , Longitude Output Origin point , Latitude Output Origin point , X Output Size, Y Output size , X Spacing , Y Spacing"
         << std::endl;
     return EXIT_FAILURE;
   }
@@ -47,8 +47,8 @@ int otbDEMToImageGeneratorTest(int argc, char* argv[])
   typedef otb::ImageFileWriter<ImageType>      WriterType;
 
   // Instantiating object
-  DEMToImageGeneratorType::Pointer object = DEMToImageGeneratorType::New();
-  WriterType::Pointer              writer = WriterType::New();
+  auto object = DEMToImageGeneratorType::New();
+  auto              writer = WriterType::New();
 
   PointType origin;
   origin[0] = ::atof(argv[3]);
@@ -62,7 +62,7 @@ int otbDEMToImageGeneratorTest(int argc, char* argv[])
   spacing[0] = ::atof(argv[7]);
   spacing[1] = ::atof(argv[8]);
 
-  otb::DEMHandler::Instance()->OpenDEMDirectory(folderPath);
+  otb::DEMHandler::GetInstance().OpenDEMDirectory(folderPath);
 
   object->SetOutputOrigin(origin);
   object->SetOutputSize(size);

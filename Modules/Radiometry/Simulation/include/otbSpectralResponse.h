@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -31,8 +31,6 @@
 #include "itkImageRegionIterator.h"
 
 #include "otbAtmosphericCorrectionParameters.h"
-
-#include <boost/shared_ptr.hpp>
 
 namespace otb
 {
@@ -68,7 +66,7 @@ public:
   typedef TValuePrecision ValuePrecisionType;
 
   typedef std::pair<TPrecision, TValuePrecision> PairType;
-  // typedef boost::shared_ptr<PairType> PairPointerType;
+  // typedef std::shared_ptr<PairType> PairPointerType;
   typedef typename std::vector<PairType> VectorPairType;
 
   /** Standard image typedef */

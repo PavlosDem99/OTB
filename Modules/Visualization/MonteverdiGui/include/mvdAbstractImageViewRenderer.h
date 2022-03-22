@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -235,7 +235,7 @@ public:
   /*-[ PUBLIC SLOTS SECTION ]------------------------------------------------*/
 
   // public slots
-public slots:
+public Q_SLOTS:
   inline void ClearScene(bool keepViewport = false);
   inline void UpdateScene();
   inline void RefreshScene();
@@ -246,7 +246,7 @@ public slots:
 
   //
   // SIGNALS.
-signals:
+Q_SIGNALS:
 
   /*-[ PROTECTED SECTION ]---------------------------------------------------*/
 
@@ -333,7 +333,7 @@ private:
 
   //
   // SLOTS.
-private slots:
+private Q_SLOTS:
 };
 
 } // end namespace 'mvd'

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2011 Insight Software Consortium
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -1418,7 +1418,93 @@ int TestHelper::RegressionTestImage(int cpt, const char* testImageFilename, cons
   return ret;
 }
 
-int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char* baselineImageFilename, const double /*toleranceDiffPixelImage*/) const
+namespace
+{
+/** \fn CompareMetadataDict
+  \brief Compare two metadata dictionaries key by key. Dictionaries are assumed to be associative containers (e.g. std::map)
+  \param[in] baselineMap : reference metadata dictionary
+  \param[in] testMap : metadata dictionary to be compared
+  \param[in] reportErrors : print difference between dictionaries into srd::cerr
+  \param[in] untestedKeys : list of keys that should be ignored during comparison
+  \param[in] p binary predicate used to compare elements (mapped type) of the two input maps
+  \return number of different elements.
+*/
+template <class MapType, class BinaryPredicate >
+int CompareMetadataDict( const MapType & baselineMap, 
+                         const MapType & testMap,
+                          bool reportErrors,
+                          std::vector< typename MapType::key_type> untestedKeys,
+                          const BinaryPredicate & p)
+{
+  auto first1 = testMap.begin();
+  auto last1 = testMap.end();
+  auto first2 = baselineMap.begin();
+  auto last2 = baselineMap.end();
+
+  if (std::distance(first1, last1) != std::distance(first2, last2))
+  {
+    if (reportErrors)
+    {
+      std::cerr << "Input metadata dictionaries have different sizes" << std::endl;
+    }
+
+    return 1;
+  }
+
+  int errorCount = 0;
+
+  while (first1 != last1)
+  {
+    if (std::find(untestedKeys.begin(), untestedKeys.end(), first1->first) == untestedKeys.end())
+    {
+      if (first1->first != first2->first)
+      {
+        errorCount++;
+        if (reportErrors)
+        {
+          std::cerr << "Metadata key " << otb::MetaData::EnumToString(first1->first) 
+                    << " does not match between test and baseline images:\n"
+                    << "Baseline image: " << first2->second << "\n"
+                    << "Test image: " << first1->second << "\n";
+        }
+        return errorCount;
+      }
+
+      if (!p(first1->second, first2->second))
+      {
+        errorCount++;
+        if (reportErrors)
+          std::cerr << "Metadata " << otb::MetaData::EnumToString(first1->first) 
+                    << " does not match between test and baseline images:\n"
+                    << "Baseline image: " << first2->second << "\n"
+                    << "Test image: " << first1->second << "\n";
+      }
+    }
+    
+    ++first1;
+    ++first2;
+  }
+
+  return errorCount;
+}
+
+
+
+template <class MapType>
+int CompareMetadataDict( const MapType & baselineMap, 
+                         const MapType & testMap,
+                          bool reportErrors,
+                          std::vector< typename MapType::key_type> untestedKeys)
+{
+  auto p = []( const typename MapType::mapped_type & rhs, 
+               const typename MapType::mapped_type & lhs) 
+          {return rhs == lhs;};
+  return CompareMetadataDict(baselineMap, testMap, reportErrors, untestedKeys, p);
+}
+
+}
+
+int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char* baselineImageFilename, const double tolerance) const
 {
   // Use the factory mechanism to read the test and baseline files and convert them to double
   typedef otb::Image<double, ITK_TEST_DIMENSION_MAX> ImageType;
@@ -1436,7 +1522,7 @@ int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char
     itkGenericExceptionMacro(<< "Exception detected while reading " << baselineImageFilename << " : " << e.GetDescription());
   }
 
-  // Read the baseline file
+  // Read the test file
   ReaderType::Pointer testReader = ReaderType::New();
   testReader->SetFileName(testImageFilename);
   try
@@ -1449,6 +1535,7 @@ int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char
   }
 
   unsigned int errcount = 0;
+
   // The sizes of the baseline and test image must match
   ImageType::SizeType baselineSize;
   baselineSize = baselineReader->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -1541,8 +1628,8 @@ int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char
   if (blImPtr->GetGCPProjection().compare(testImPtr->GetGCPProjection()) != 0)
   {
     std::cerr << "The gcp projection of the baseline image and Test image do not match!" << std::endl;
-    std::cerr << "baseline image: " << baselineImageFilename << " has gcp projection " << blImPtr->GetGCPProjection() << std::endl;
-    std::cerr << "Test image:     " << testImageFilename << " has gcp projection " << testImPtr->GetGCPProjection() << std::endl;
+    std::cerr << "baseline image: " << baselineImageFilename << " has gcp projection '" << blImPtr->GetGCPProjection() << "'\n'";
+    std::cerr << "Test image:     " << testImageFilename << " has gcp projection '" << testImPtr->GetGCPProjection() << "'\n";
     errcount++;
   }
 
@@ -1556,45 +1643,122 @@ int TestHelper::RegressionTestMetaData(const char* testImageFilename, const char
   }
   else
   {
+    double tol = 0.0000001;
     for (unsigned int i = 0; i < blImPtr->GetGCPCount(); ++i)
     {
       if ((blImPtr->GetGCPId(i).compare(testImPtr->GetGCPId(i)) != 0) || (blImPtr->GetGCPInfo(i).compare(testImPtr->GetGCPInfo(i)) != 0) ||
           (blImPtr->GetGCPRow(i) != testImPtr->GetGCPRow(i)) || (blImPtr->GetGCPCol(i) != testImPtr->GetGCPCol(i)) ||
-          (blImPtr->GetGCPX(i) != testImPtr->GetGCPX(i)) || (blImPtr->GetGCPY(i) != testImPtr->GetGCPY(i)) || (blImPtr->GetGCPZ(i) != testImPtr->GetGCPZ(i)))
+          (blImPtr->GetGCPX(i) - testImPtr->GetGCPX(i) > tol) || (blImPtr->GetGCPY(i) - testImPtr->GetGCPY(i) > tol) || (blImPtr->GetGCPZ(i) - testImPtr->GetGCPZ(i) > tol))
       {
         std::cerr << "The GCP number " << i << " of the baseline image and Test image do not match!" << std::endl;
         std::cerr << "baseline image: " << baselineImageFilename << " has gcp number " << i << " ("
-                  << "id: " << blImPtr->GetGCPId(i) << ", "
-                  << "info: " << blImPtr->GetGCPInfo(i) << ", "
-                  << "row: " << blImPtr->GetGCPRow(i) << ", "
-                  << "col: " << blImPtr->GetGCPCol(i) << ", "
-                  << "X: " << blImPtr->GetGCPX(i) << ", "
-                  << "Y: " << blImPtr->GetGCPY(i) << ", "
-                  << "Z: " << blImPtr->GetGCPZ(i) << ")" << std::endl;
+                  << "id: '" << blImPtr->GetGCPId(i) << "', "
+                  << "info: '" << blImPtr->GetGCPInfo(i) << "', "
+                  << "row: '" << blImPtr->GetGCPRow(i) << "', "
+                  << "col: '" << blImPtr->GetGCPCol(i) << "', "
+                  << "X: '" << blImPtr->GetGCPX(i) << "', "
+                  << "Y: '" << blImPtr->GetGCPY(i) << "', "
+                  << "Z: '" << blImPtr->GetGCPZ(i) << "')" << std::endl;
         std::cerr << "Test image:     " << testImageFilename << " has gcp  number " << i << " ("
-                  << "id: " << testImPtr->GetGCPId(i) << ", "
-                  << "info: " << testImPtr->GetGCPInfo(i) << ", "
-                  << "row: " << testImPtr->GetGCPRow(i) << ", "
-                  << "col: " << testImPtr->GetGCPCol(i) << ", "
-                  << "X: " << testImPtr->GetGCPX(i) << ", "
-                  << "Y: " << testImPtr->GetGCPY(i) << ", "
-                  << "Z: " << testImPtr->GetGCPZ(i) << ")" << std::endl;
+                  << "id: '" << testImPtr->GetGCPId(i) << "', "
+                  << "info: '" << testImPtr->GetGCPInfo(i) << "', "
+                  << "row: '" << testImPtr->GetGCPRow(i) << "', "
+                  << "col: '" << testImPtr->GetGCPCol(i) << "', "
+                  << "X: '" << testImPtr->GetGCPX(i) << "', "
+                  << "Y: '" << testImPtr->GetGCPY(i) << "', "
+                  << "Z: '" << testImPtr->GetGCPZ(i) << "')" << std::endl;
         errcount++;
       }
     }
   }
+  
+  const auto & baselineImageMetadata = blImPtr->GetImageMetadata();
+  const auto & testImageMetadata = testImPtr->GetImageMetadata();
+
+  // Compare string keys (strict equality)
+  // Don't test OTB_VERSION, as it changes with the version of OTB used
+  std::vector<MDStr> untestedMDStr = {MDStr::OtbVersion};
+  errcount += CompareMetadataDict(baselineImageMetadata.StringKeys,
+				  testImageMetadata.StringKeys,
+				  m_ReportErrors,
+          untestedMDStr);
+
+  // Compare numeric keys
+  auto compareDouble = [tolerance](double lhs, double rhs)
+        {return fabs(lhs - rhs) 
+                <= ( (fabs(lhs) < fabs(rhs) ? fabs(rhs) : fabs(lhs)) * tolerance);};
+
+  // Don't test TileHints and datatype, as these metadata are written by gdal drivers, not otb.
+  std::vector<MDNum> untestedMDNum  = {MDNum::TileHintX, MDNum::TileHintY, MDNum::DataType};
+  errcount += CompareMetadataDict(baselineImageMetadata.NumericKeys,
+				  testImageMetadata.NumericKeys,
+				  m_ReportErrors,
+				  untestedMDNum,
+				  compareDouble);
+
+  // Compare time keys (strict equality)
+  errcount += CompareMetadataDict(baselineImageMetadata.TimeKeys, 
+				  testImageMetadata.TimeKeys,
+				  m_ReportErrors,
+				  {});
+
+
+  // Compare LUTs (strict equality)
+  errcount += CompareMetadataDict(baselineImageMetadata.LUT1DKeys, 
+				  testImageMetadata.LUT1DKeys,
+				  m_ReportErrors,
+				  {});
+
+  errcount += CompareMetadataDict(baselineImageMetadata.LUT2DKeys, 
+				  testImageMetadata.LUT2DKeys,
+				  m_ReportErrors,
+				  {});
+
+
+  // Compare extra keys
+  errcount += CompareMetadataDict(baselineImageMetadata.ExtraKeys, 
+				  testImageMetadata.ExtraKeys,
+				  m_ReportErrors,
+          {});
+
+
+  if (baselineImageMetadata.Has(MDGeom::RPC))
+  {
+    if (!testImageMetadata.Has(MDGeom::RPC))
+    {
+      errcount++;
+      if (m_ReportErrors)
+      {
+        std::cerr << "Test image does not have RPC coefficients" << std::endl;
+      }
+
+    }
+    //if (!(boost::any_cast<Projection::RPCParam>(baselineImageMetadata[MDGeom::RPC]) 
+    //      == boost::any_cast<Projection::RPCParam>(testImageMetadata[MDGeom::RPC])))
+    if (! ( boost::any_cast<Projection::RPCParam>(baselineImageMetadata[MDGeom::RPC]).Compare( 
+          boost::any_cast<Projection::RPCParam>(testImageMetadata[MDGeom::RPC]), compareDouble)))
+    {
+      errcount++;
+      if (m_ReportErrors)
+      {
+        std::cerr << "RPC parameters mismatch between baseline and test images" << std::endl;
+      }
+    }
+  }
+  
   if (errcount > 0)
   {
     std::cout << "<DartMeasurement name=\"MetadataError\" type=\"numeric/int\">";
     std::cout << errcount;
     std::cout << "</DartMeasurement>" << std::endl;
   }
+
   return errcount;
 }
 
 //
 // Generate all of the possible baselines
-// The possible baselines are generated fromn the baselineFilename using the following algorithm:
+// The possible baselines are generated from the baselineFilename using the following algorithm:
 // 1) strip the suffix
 // 2) append a digit _x
 // 3) append the original suffix.
@@ -2391,7 +2555,7 @@ bool TestHelper::CompareLines(const std::string& strfileref, const std::string& 
   }
 
   numLine++;
-  // Store alls differences lines
+  // Store all differences lines
   if (differenceFoundInCurrentLine && m_ReportErrors)
   {
     listStrDiffLineFileRef.push_back(strfileref);

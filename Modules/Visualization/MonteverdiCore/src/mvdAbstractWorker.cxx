@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -100,7 +100,7 @@ void AbstractWorker::Do() noexcept
 
     // Emit task/job has correctly been done giving resulting object
     // to main thread.
-    emit Done(result);
+    Q_EMIT Done(result);
   }
   catch (std::exception& exc)
   {
@@ -110,11 +110,11 @@ void AbstractWorker::Do() noexcept
 
     // Emit task/job has incorrectly been done giving clone of
     // exception to main thread.
-    emit ExceptionRaised(FromStdString(exc.what()));
+    Q_EMIT ExceptionRaised(FromStdString(exc.what()));
   }
 
   // Emit task/job has finished (thread can be signal to quit()).
-  emit Finished();
+  Q_EMIT Finished();
 }
 
 /*******************************************************************************/

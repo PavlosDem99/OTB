@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -25,7 +25,6 @@ add_library(OTBIceViewer ${OTBICEVIEWER_SRCS})
 target_link_libraries(OTBIceViewer
   ${OTBIce_LIBRARIES}
   ${OTBMetadata_LIBRARIES}
-  ${OTBOSSIMAdapters_LIBRARIES}
   ${OTBGLFW_LIBRARIES}
   ${OTBGlut_LIBRARIES})
 

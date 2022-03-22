@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -90,7 +90,7 @@ private:
     AddParameter(ParameterType_OutputImage, "out", "Output Image");
     SetParameterDescription("out",
                             "The output filename will be used to get the prefix "
-                            "and the extension of thise output written's image. For example with outimage.tif as"
+                            "and the extension of this output written's image. For example with outimage.tif as"
                             "output filename, the generated images will had an indice (corresponding at each "
                             "burst) between the prefix and the extension, such as: outimage_Burst0.tif and "
                             "outimage_Burst1.tif (if 2 bursts).");
@@ -137,7 +137,7 @@ private:
     unsigned int nbBursts = 1;
     try
     {
-      nbBursts = std::stoi(in->GetImageKeywordlist().GetMetadataByKey("support_data.geom.bursts.number"));
+      nbBursts = boost::any_cast<const otb::SARParam&>(in->GetImageMetadata()[otb::MDGeom::SAR]).burstRecords.size();
     }
     catch (...)
     {

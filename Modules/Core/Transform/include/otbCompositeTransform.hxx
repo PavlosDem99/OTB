@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -24,8 +24,6 @@
 #include "otbCompositeTransform.h"
 
 #include "otbGenericMapProjection.h"
-#include "otbForwardSensorModel.h"
-#include "otbInverseSensorModel.h"
 #include "itkIdentityTransform.h"
 
 namespace otb

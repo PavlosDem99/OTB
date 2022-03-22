@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -109,16 +109,16 @@ private:
     FloatVectorImageType* in = GetParameterImage("in");
 
     // Set the filer input
-    m_DeburstFilter = DeburstFilterType::New();
-    m_DeburstFilter->SetInput(in);
+    auto deburstFilter = DeburstFilterType::New();
+    deburstFilter->SetInput(in);
 
-    m_DeburstFilter->SetOnlyValidSample(GetParameterInt("onlyvalidsamples"));
+    deburstFilter->SetOnlyValidSample(GetParameterInt("onlyvalidsamples"));
 
     // Set the output image
-    SetParameterOutputImage("out", m_DeburstFilter->GetOutput());
+    SetParameterOutputImage("out", deburstFilter->GetOutput());
+    RegisterPipeline();
   }
 
-  DeburstFilterType::Pointer m_DeburstFilter;
 };
 }
 }

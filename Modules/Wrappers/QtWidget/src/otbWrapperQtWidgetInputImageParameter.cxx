@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -122,8 +122,8 @@ bool QtWidgetInputImageParameter::SetFileName(const QString& value)
     // notify of value change
     QString key(m_InputImageParam->GetKey());
 
-    emit ParameterChanged(key);
-    emit FileNameIsSet();
+    Q_EMIT ParameterChanged(key);
+    Q_EMIT FileNameIsSet();
   }
   else
     res = false;

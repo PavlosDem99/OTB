@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -24,7 +24,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "otbTileImageFilter.h"
-#include "otbImageKeywordlist.h"
+#include "otbImageMetadata.h"
 
 namespace otb
 {
@@ -80,7 +80,7 @@ public:
   itkTypeMacro(SarConcatenateBurstsImageFilter, TileImageFilter);
 
   // Setter
-  void SetSLCImageKeyWorList(ImageKeywordlist sarImageKWL);
+  void SetSLCImageMetadata(ImageMetadata sarImd);
 
   bool getDeburstLinesAndSamples(LinesRecordVectorType& linesRecord, LinesRecordVectorType& samplesRecord, unsigned int first_burstInd,
                                  bool inputWithInvalidPixels);
@@ -100,11 +100,8 @@ private:
   SarConcatenateBurstsImageFilter(const Self&) = delete;
   void operator=(const Self&) = delete;
 
-  // SLC KeywordList
-  ImageKeywordlist m_SLCImageKWL;
-
-  // Deburst SLC KeywordList
-  ImageKeywordlist m_DeburstSLCImageKWL;
+  // SLC Image Metadata
+  ImageMetadata m_SLCImd;
 
   unsigned int m_Offset_OriginL;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -26,6 +26,7 @@
 #include "otbWrapperTypes.h"
 #include "otbWrapperTags.h"
 #include "otbWrapperParameterGroup.h"
+#include "otbWrapperFieldParameter.h"
 
 #include "otbLogger.h"
 #include "otbStopwatch.h"
@@ -249,6 +250,8 @@ public:
    * \li ParameterType_InputFilenameListParameter
    * \li ParameterType_StringList
    * \li ParameterType_ListView
+   * \li ParameterType_Band
+   * \li ParameterType_Field
    */
   void SetParameterString(std::string const& parameter, std::string value, bool hasUserValueFlag = true);
 
@@ -258,6 +261,8 @@ public:
    * \li ParameterType_String
    * \li ParameterType_StringList
    * \li ParameterType_ListView
+   * \li ParameterType_Band
+   * \li ParameterType_Field
    * \li ParameterType_InputFilename
    * \li ParameterType_OutputFilename
    * \li ParameterType_Directory
@@ -426,6 +431,8 @@ public:
    *
    * Can be called for types:
    * \li ParameterType_ListView
+   * \li ParameterType_Band
+   * \li ParameterType_Field
    */
   void SetListViewSingleSelectionMode(std::string const& parameter, bool status);
 
@@ -434,6 +441,8 @@ public:
    *
    * Can be called for types:
    * \li ParameterType_ListView
+   * \li ParameterType_Band
+   * \li ParameterType_Field
    */
   bool GetListViewSingleSelectionMode(const std::string& parameter);
 
@@ -561,6 +570,34 @@ public:
    * InputImageList parameter or if id is out of bounds
    */
   void SetNthParameterInputImageList(std::string const& parameter, const unsigned int& id, ImageBaseType* img);
+
+  /**
+   * Set vector data name from which we choose the fields for a FieldParameter
+   * \param[in] key The parameter key (must be a FieldParameter)
+   * \param[in] vectorData vector data name
+   */
+  void SetVectorData(std::string const& key, std::string const& vectorData );
+
+  /**
+   * Set list of allowed field types for a FieldParameter
+   * \param[in] key The parameter key (must be a FieldParameter)
+   * \param[in] typeFilter List of allowed types
+   */
+  void SetTypeFilter(std::string const& key, FieldParameter::TypeFilterType const& typeFilter );
+
+  /**
+   * Get list of allowed field types for a FieldParameter
+   * \param[in] key The parameter key (must be a FieldParameter)
+   * \return List of allowed types
+   */
+  const FieldParameter::TypeFilterType& GetTypeFilter(std::string const& key ) const;
+
+  /**
+   * Set raster data name from which we choose the bands for a BandParameter
+   * \param[in] key The parameter key (must be a BandParameter)
+   * \param[in] rasterData raster data name
+   */
+  void SetRasterData(std::string const& key, std::string const& rasterData );
 
   /**
      * Add a value to a parameter list as a string
@@ -729,7 +766,7 @@ public:
 
   void AddDocTag(const std::string&);
 
-  /** return wether the application has the "deprecated tag or not */
+  /** return whether the application has the "deprecated tag or not */
   bool IsDeprecated();
 
   DocExampleStructure::Pointer GetDocExample();
@@ -776,10 +813,6 @@ public:
    *  to select the image in an InputImageList.*/
   std::string GetImageProjection(const std::string& key, unsigned int idx = 0);
 
-  /** Get the keywordlist of the image parameter 'key'. The optional 'idx'
-   * allows selecting the image in an InputImageList.*/
-  otb::ImageKeywordlist GetImageKeywordlist(const std::string& key, unsigned int idx = 0);
-
   /** Set the requested region on the image parameter 'key' and propagate it.
    *  The returned value is an estimate of the RAM usage (in Bytes) to process
    *  this region. It should be assumed that the index of the largest possible
@@ -792,8 +825,13 @@ public:
    * the index of the largest possible region starts at (0,0).*/
   ImageBaseType::RegionType GetImageRequestedRegion(const std::string& key, unsigned int idx = 0);
 
+  /** Get/Set the ImageMetadata of the image parameter 'key'. The optional 'idx'
+   * allows selecting the image in an InputImageList.*/
+  ImageMetadata &GetImageMetadata(const std::string& key, unsigned int idx = 0);
+  void SetImageMetadata(const ImageMetadata & imd, const std::string& key, unsigned int idx = 0);
+
   /** Returns a copy of the metadata dictionary of the image */
-  itk::MetaDataDictionary GetImageMetaData(const std::string& key, unsigned int idx = 0);
+  itk::MetaDataDictionary GetMetadataDictionary(const std::string& key, unsigned int idx = 0);
 
   /** Find out what is the pixel type from an image parameter
    *  This function assumes that the underlying object is either an otb::Image

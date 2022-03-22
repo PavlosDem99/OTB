@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -28,6 +28,7 @@
 #include "itkMetaDataObject.h"
 #include "otbMetaDataKey.h"
 #include "otbImage.h"
+#include "otbNoDataHelper.h"
 
 #include "gdal_alg.h"
 #include "stdint.h" //needed for uintptr_t
@@ -103,15 +104,13 @@ void OGRDataSourceToLabelImageFilter<TOutputImage>::SetOutputOrigin(const float 
 }
 
 template <class TOutputImage>
-void OGRDataSourceToLabelImageFilter<TOutputImage>::SetOutputParametersFromImage(const ImageBaseType* image)
+template <class ImagePointerType>
+void OGRDataSourceToLabelImageFilter<TOutputImage>::SetOutputParametersFromImage(const ImagePointerType src)
 {
-  this->SetOutputOrigin(image->GetOrigin());
-  this->SetOutputSpacing(internal::GetSignedSpacing(image));
-  this->SetOutputSize(image->GetLargestPossibleRegion().GetSize());
-
-  ImageMetadataInterfaceBase::Pointer imi = ImageMetadataInterfaceFactory::CreateIMI(image->GetMetaDataDictionary());
-
-  this->SetOutputProjectionRef(imi->GetProjectionRef());
+  this->SetOutputOrigin(src->GetOrigin());
+  this->SetOutputSpacing(src->GetSignedSpacing());
+  this->SetOutputSize(src->GetLargestPossibleRegion().GetSize());
+  this->SetOutputProjectionRef(src->GetProjectionRef());
 }
 
 template <class TOutputImage>
@@ -133,10 +132,8 @@ void OGRDataSourceToLabelImageFilter<TOutputImage>::GenerateOutputInformation()
   // Set spacing and origin
   outputPtr->SetSignedSpacing(m_OutputSpacing);
   outputPtr->SetOrigin(m_OutputOrigin);
-
-  itk::MetaDataDictionary& dict = outputPtr->GetMetaDataDictionary();
-  itk::EncapsulateMetaData<std::string>(dict, MetaDataKey::ProjectionRefKey, static_cast<std::string>(this->GetOutputProjectionRef()));
-
+  outputPtr->SetProjectionRef(this->GetOutputProjectionRef());
+ 
   // Generate the OGRLayers from the input OGRDataSource
   for (unsigned int idx = 0; idx < this->GetNumberOfInputs(); ++idx)
   {
@@ -155,8 +152,8 @@ void OGRDataSourceToLabelImageFilter<TOutputImage>::GenerateOutputInformation()
   noDataValueAvailable.resize(nbBands, true);
   std::vector<double> noDataValue;
   noDataValue.resize(nbBands, static_cast<double>(m_BackgroundValue));
-  itk::EncapsulateMetaData<std::vector<bool>>(dict, MetaDataKey::NoDataValueAvailable, noDataValueAvailable);
-  itk::EncapsulateMetaData<std::vector<double>>(dict, MetaDataKey::NoDataValue, noDataValue);
+
+  WriteNoDataFlags(noDataValueAvailable, noDataValue, outputPtr->GetImageMetadata());
 }
 
 template <class TOutputImage>

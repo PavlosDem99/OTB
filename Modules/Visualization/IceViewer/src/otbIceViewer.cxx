@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -19,8 +19,6 @@
  */
 
 #include <algorithm>
-
-#include <otbImageMetadataInterfaceFactory.h>
 
 #include "otbGlROIActor.h"
 #include "otbGlVectorActor.h"
@@ -108,11 +106,11 @@ void IceViewer::AddImage(const std::string& fname, const std::string& key, const
   }
 
   // Get advised colors
-  ImageMetadataInterfaceBase::Pointer imi = ImageMetadataInterfaceFactory::CreateIMI(actor->GetMetaDataDictionary());
+  const auto display = actor->GetImd()->GetDefaultDisplay();
 
-  actor->SetRedIdx(std::min(imi->GetDefaultDisplay()[0] + 1, actor->GetNumberOfComponents()));
-  actor->SetGreenIdx(std::min(imi->GetDefaultDisplay()[1] + 1, actor->GetNumberOfComponents()));
-  actor->SetBlueIdx(std::min(imi->GetDefaultDisplay()[2] + 1, actor->GetNumberOfComponents()));
+  actor->SetRedIdx(std::min(display[0] + 1, actor->GetNumberOfComponents()));
+  actor->SetGreenIdx(std::min(display[1] + 1, actor->GetNumberOfComponents()));
+  actor->SetBlueIdx(std::min(display[2] + 1, actor->GetNumberOfComponents()));
 
   otb::ImageSettings::Pointer imageSettings(actor->GetImageSettings());
   assert(!imageSettings.IsNull());
@@ -311,7 +309,7 @@ void IceViewer::Start()
     m_View->GetSettings()->SetOrigin(firstActor->GetOrigin());
     m_View->GetSettings()->SetSpacing(firstActor->GetSpacing());
     m_View->GetSettings()->SetWkt(firstActor->GetWkt());
-    m_View->GetSettings()->SetKeywordList(firstActor->GetKwl());
+    m_View->GetSettings()->SetImageMetadata(firstActor->GetImd());
     m_View->GetSettings()->UseProjectionOn();
 
     firstActor->ProcessViewSettings();
@@ -620,7 +618,7 @@ void IceViewer::DrawHelp()
   oss << "- Show/hide image dataset with space bar" << std::endl;
   oss << "- Highlight selected image by holding backspace" << std::endl;
   oss << "- Zoom to full extent of selected dataset with W" << std::endl;
-  oss << "- Zoom to full resolution fo selected images with Q (images only, as full resolution has no meaning for vectors)" << std::endl;
+  oss << "- Zoom to full resolution for selected images with Q (images only, as full resolution has no meaning for vectors)" << std::endl;
   oss << "- Set rotation angle to perspective view with Y to accommodate heavy off-nadir viewing angle images" << std::endl;
   oss << "- Set rotation angle to north up view with J" << std::endl;
   oss << "- Reset rotation angle with I" << std::endl;
@@ -653,7 +651,7 @@ void IceViewer::DrawHelp()
          "is used in all color channels, the value will be uniform)"
       << std::endl;
   oss << "- Switch to local gradient mode with M (or ',')." << std::endl;
-  oss << "- Press E to apply same shader configuration (color range, local constrast or standard shader configuration) to all other image shaders."
+  oss << "- Press E to apply same shader configuration (color range, local contrast or standard shader configuration) to all other image shaders."
       << std::endl;
   oss << "- Press N to activate/deactivate the use of no-data value (no-data value is set to 0)" << std::endl;
   oss << std::endl;
@@ -1186,7 +1184,7 @@ void IceViewer::key_callback(GLFWwindow* window, int key, int scancode, int acti
         alrx = aulx + currentImageActor->GetLargestRegion().GetSize()[0] * currentImageActor->GetSpacing()[0];
         alry = auly + currentImageActor->GetLargestRegion().GetSize()[1] * currentImageActor->GetSpacing()[1];
         roiActor->SetWkt(currentImageActor->GetWkt());
-        roiActor->SetKwl(currentImageActor->GetKwl());
+        roiActor->SetImd(currentImageActor->GetImd());
       }
 
       otb::GlROIActor::PointType ul, lr;
@@ -1237,7 +1235,7 @@ void IceViewer::key_callback(GLFWwindow* window, int key, int scancode, int acti
       tmpImPtY = currentImageActor->ViewportToImageTransform(vpCenter);
 
       m_View->GetSettings()->SetWkt(currentImageActor->GetWkt());
-      m_View->GetSettings()->SetKeywordList(currentImageActor->GetKwl());
+      m_View->GetSettings()->SetImageMetadata(currentImageActor->GetImd());
     }
     else if (currentVectorActor.IsNotNull())
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -107,9 +107,8 @@ public:
 
 protected:
   VectorDataExtractROI();
-  ~VectorDataExtractROI() override
-  {
-  }
+  ~VectorDataExtractROI() override = default;
+
   void PrintSelf(std::ostream& os, itk::Indent indent) const override;
 
   /** Method to compare the projection embedded in the cartoRegion And the the InputVectorData*/

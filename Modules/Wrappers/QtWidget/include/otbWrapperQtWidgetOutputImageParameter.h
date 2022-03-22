@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -50,10 +50,10 @@ public:
   /** Get the PixelType*/
   // itkGetMacro(PixelType, int);
 
-public slots:
+public Q_SLOTS:
   void SetFileName(const QString& value);
 
-protected slots:
+protected Q_SLOTS:
   void SelectFile();
   void SetPixelType(int pixelType);
 

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -55,7 +55,7 @@ endif()
 
 ExternalProject_Add(QWT
   PREFIX QWT
-  URL "http://downloads.sourceforge.net/project/qwt/qwt/6.1.6/qwt-6.1.6.zip"
+  URL "https://downloads.sourceforge.net/project/qwt/qwt/6.1.6/qwt-6.1.6.zip"
   URL_MD5 5f59c0843484afb1462d21444227d6f6
   SOURCE_DIR ${QWT_SB_SRC}
   BINARY_DIR ${QWT_SB_SRC}
@@ -72,3 +72,10 @@ ExternalProject_Add(QWT
   )
 
 SUPERBUILD_PATCH_SOURCE(QWT)
+
+set(_SB_QWT_INCLUDE_DIR ${SB_INSTALL_PREFIX}/include)
+if(WIN32)
+  set(_SB_QWT_LIBRARY ${SB_INSTALL_PREFIX}/lib/qwt_i.lib)
+elseif(UNIX)
+  set(_SB_QWT_LIBRARY ${SB_INSTALL_PREFIX}/lib/libqwt${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()

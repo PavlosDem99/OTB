@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -131,7 +131,7 @@ int otbVectorDataIntoImageProjectionFilterCompareImplTest(int itkNotUsed(argc), 
 
   if (!demDirectory.empty())
   {
-    otb::DEMHandler::Instance()->OpenDEMDirectory(demDirectory);
+    otb::DEMHandler::GetInstance().OpenDEMDirectory(demDirectory);
   }
 
   // Read the image
@@ -212,7 +212,7 @@ int otbVectorDataIntoImageProjectionFilterCompareImplTest(int itkNotUsed(argc), 
   rsRegion.SetOrigin(rsOrigin);
   rsRegion.SetSize(rsSize);
   rsRegion.SetRegionProjection(reader->GetOutput()->GetProjectionRef());
-  rsRegion.SetKeywordList(reader->GetOutput()->GetImageKeywordlist());
+  rsRegion.SetImageMetadata(reader->GetOutput()->GetImageMetadata());
 
   // Set the cartographic region to the extract roi filter
   vdextract->SetRegion(rsRegion);
@@ -221,7 +221,7 @@ int otbVectorDataIntoImageProjectionFilterCompareImplTest(int itkNotUsed(argc), 
   vproj = VectorDataProjectionFilterType::New();
   vproj->SetInput(vdextract->GetOutput());
   vproj->SetInputProjectionRef(vdReader->GetOutput()->GetProjectionRef());
-  vproj->SetOutputKeywordList(reader->GetOutput()->GetImageKeywordlist());
+  vproj->SetOutputImageMetadata(&reader->GetOutput()->GetImageMetadata());
   vproj->SetOutputProjectionRef(reader->GetOutput()->GetProjectionRef());
   vproj->SetOutputOrigin(reader->GetOutput()->GetOrigin());
   vproj->SetOutputSpacing(reader->GetOutput()->GetSignedSpacing());

@@ -66,8 +66,8 @@ distributions:
     libx11-6 libxext6 libxau6 libxxf86vm1 libxdmcp6 libdrm2
 
 Monteverdi also requires the standard graphics libraries **libgl1** and
-**libglu1**. Make sure you have at least one version of them installed
-in your system.
+**libglu1**, as well as the xcb library. Make sure you have at least one version of them installed
+in your system. See :`Examples of installation on specific distribution`_ for guidelines on some distributions.
 
 Caveat on OTB 6.0
 ~~~~~~~~~~~~~~~~~
@@ -84,8 +84,8 @@ necessary to install one of the following packages:
 Python bindings
 ~~~~~~~~~~~~~~~
 
-Since OTB 6.7.0 OTB bindings for Python 3.5 are distributed as a binary
-package.
+Since OTB 8.0.0 OTB bindings for Python 3.8 are distributed as a binary
+package. (From OTB 6.7 to 7.4, bindings are provided for Python 3.5)
 Please note that using a different Python version may not be compatible with
 OTB wrappings. If the installation completes
 without issue, information relating to your Python bindings will be provided. 
@@ -94,12 +94,12 @@ You must have Python NumPy bindings installed in your system. They can be instal
 without admin rights as follows: "pip install --user numpy". This is to give users the option 
 to select their own existing Python installation rather than the one dibstributed by the OTB package.
 
-By default, bindings for Python 3.5 will be enabled with the ``otbenv`` script.
+By default, bindings for Python 3.8 will be enabled with the ``otbenv`` script.
 
 Recompiling Python bindings
 +++++++++++++++++++++++++++
 
-If you are using another version of Python 3 than 3.5, but still want to use OTB Python bindings, it is possible
+If you are using another version of Python 3 than 3.8, but still want to use OTB Python bindings, it is possible
 to compile the python bindings again with your version of Python. CMake is required (it is available in most package
 managers or at [https://cmake.org/]). At the root of the OTB installation run :
 
@@ -112,6 +112,7 @@ You should now be able to import ``otbApplication`` through Python !
 
 Alternatively, you could use a virtual env or otb Conda Package to use the OTB Python bindings.
 
+Also see `Examples of installation on specific distribution`_ for examples on some distributions.
 
 Notes:
 ~~~~~~
@@ -125,6 +126,69 @@ Notes:
 - To have "OTB-|release|-Linux64" installed in /usr/local or /opt execute "OTB-|release|-Linux64.run" in that directory.
 
 - Multiple installation of OTB can exists in same system without one conflicting the other!
+
+Examples of installation on specific distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here are provided provide examples of package installations on popular distributions, using package managers to install the required dependencies.
+
+Ubuntu 18.04 and Ubuntu 20.04
++++++++++++++++++++++++++++++
+
+The following commands can be executed on Ubuntu 18.04 or Ubuntu 20.04, for example in a docker container, to install OTB in a folder containing the OTB package self-extractable archive:
+
+.. code-block:: bash
+
+  apt-get update
+
+  # Required packages to extract OTB from the archive
+  apt-get install -y --no-install-recommends file python3 python3-dev python3-numpy
+
+  # Required packages to run OTB GUI tools AND recompile the Python bindings
+  apt-get install -y --no-install-recommends '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
+
+  # optional: prevent tzdata from asking the timezone during cmake installation
+  export DEBIAN_FRONTEND=noninteractive 
+
+  # Required tools to recompile the bindings
+  apt-get install -y --no-install-recommends g++ cmake make
+
+  # Extract the archive
+  chmod +x OTB-8.0.0-rc1-Linux64.run
+  ./OTB-8.0.0-rc1-Linux64.run
+
+  # recompile the Python bindings
+  cd OTB-8.0.0-Linux64
+  source otbenv.profile
+  ctest -S share/otb/swig/build_wrapping.cmake -VV
+
+CENTOS 7
+++++++++
+
+   ..code-block:: bash
+
+   #Add the SCL repositories to install python 3.8 and gcc 8
+   yum -y install epel-release centos-release-scl
+
+   #Install required dependencies for python bindings recompilation
+   yum -y install devtoolset-8 cmake3 rh-python38 rh-python38-python-devel rh-python38-python-numpy swig3 mesa-libGL-devel mesa-libGLU-devel
+
+   #Required dependencies for running OTB GUI tools
+	yum install libXcursor-devel libXi-devel libXinerama-devel libXrandr-devel libxcb-devel libxkbcommon-devel libxkbcommon-x11-devel 
+   yum install xcb-util-devel xcb-util-image-devel xcb-util-keysyms-devel xcb-util-renderutil-devel xcb-util-wm-devel
+
+   #Enable the environment
+   scl enable rh-python38 devtoolset-8 -- /bin/bash
+
+   # Extract the archive
+   chmod +x OTB-8.0.0-rc1-Linux64.run
+   ./OTB-8.0.0-rc1-Linux64.run
+
+   # recompile the Python bindings
+   cd OTB-8.0.0-Linux64
+   source otbenv.profile
+   ctest3 -S share/otb/swig/build_wrapping.cmake -VV
+
 
 FAQ
 ~~~

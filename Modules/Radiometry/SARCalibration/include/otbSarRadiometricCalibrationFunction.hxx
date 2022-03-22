@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -39,8 +39,7 @@ SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::SarRadiometricCalibra
     m_ApplyIncidenceAngleCorrection(true),
     m_ApplyRangeSpreadLossCorrection(true),
     m_ApplyLookupDataCorrection(false),
-    m_ApplyRescalingFactor(false),
-    m_RemoveS1ThermalNoise(false)
+    m_ApplyRescalingFactor(false)
 {
   /* initialize parametric functions */
   m_Noise                 = ParametricFunctionType::New();
@@ -48,7 +47,6 @@ SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::SarRadiometricCalibra
   m_AntennaPatternOldGain = ParametricFunctionType::New();
   m_IncidenceAngle        = ParametricFunctionType::New();
   m_RangeSpreadLoss       = ParametricFunctionType::New();
-  m_S1ThermaNoise         = S1ThermalNoiseLookupType::New();
 
   /* initialize default values in paramerticFunction instances  */
   m_Noise->SetConstantValue(0.0);
@@ -56,8 +54,6 @@ SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::SarRadiometricCalibra
   m_AntennaPatternOldGain->SetConstantValue(1.0);
   m_IncidenceAngle->SetConstantValue(CONST_PI_2);
   m_RangeSpreadLoss->SetConstantValue(1.0);
-
-  //  m_Lut = 0; //new LookupTableBase();
 }
 
 /**
@@ -72,12 +68,6 @@ void SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::SetInputImage(co
   m_AntennaPatternNewGain->SetInputImage(ptr);
   m_AntennaPatternOldGain->SetInputImage(ptr);
   m_RangeSpreadLoss->SetInputImage(ptr);
-
-  if (ptr->GetImageKeywordlist().HasKey("noise.rangeCount"))
-  {
-    m_RemoveS1ThermalNoise = true;
-    m_S1ThermaNoise->SetImageKeywordlist(ptr->GetImageKeywordlist());
-  }
 }
 
 /**
@@ -110,9 +100,9 @@ SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const
     this->GetInputImage()->TransformIndexToPhysicalPoint(index, point);
 
   /** digitalNumber:
-    * For complex pixel type, std::abs() returns the modulus. which is
+    * For complex pixel type, std::abs() returns the modulus, which is
     * sqrt((I*I) + (Q*Q)). Where I and Q are real and imaginary part of the
-    * complex pixel. So to to get (I*I) + (Q*Q) in our calculation, the output
+    * complex pixel. So to get (I*I) + (Q*Q) in our calculation, the output
     * of std::abs() is squared. See below (digitalNumber * digitalNumber) where
     * digitalNumber is the output of std::abs() which is sqrt((I*I) + (Q*Q)). For
     * non-complex pixel types, std::abs() simply returns absolute value.
@@ -152,9 +142,9 @@ SarRadiometricCalibrationFunction<TInputImage, TCoordRep>::EvaluateAtIndex(const
     * above values (incidence angle, rangespreadloss etc.. */
   if (m_ApplyLookupDataCorrection)
   {
-    if (m_EnableNoise && m_RemoveS1ThermalNoise)
+    if (m_EnableNoise && m_NoiseLut)
     {
-      sigma = std::max(0., sigma - m_S1ThermaNoise->GetValue(index[0], index[1]));
+      sigma = std::max(0., sigma - m_NoiseLut->GetValue(index[0], index[1]));
     }
 
     RealType lutVal = static_cast<RealType>(m_Lut->GetValue(index[0], index[1]));

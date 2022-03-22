@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -465,8 +465,8 @@ private:
 
     std::vector<bool>        noDataFlags;
     std::vector<double>      noDataValues;
-    itk::MetaDataDictionary& dict = GetParameterFloatVectorImage("in")->GetMetaDataDictionary();
-    bool                     ret  = otb::ReadNoDataFlags(dict, noDataFlags, noDataValues);
+    const auto & imd = GetParameterFloatVectorImage("in")->GetImageMetadata();
+    bool                     ret  = otb::ReadNoDataFlags(imd, noDataFlags, noDataValues);
 
     if (ret)
     {
@@ -681,7 +681,7 @@ private:
         if (driverName.find("ESRI Shapefile") != std::string::npos)
         {
           otbAppLogINFO("REPACK the Shapefile ...");
-          // In Shapefile format, the name of the DaaSource is also the name of the Layer.
+          // In Shapefile format, the name of the DataSource is also the name of the Layer.
           std::string shpLayerName = itksys::SystemTools::GetFilenameWithoutExtension(GetParameterString("mode.vector.out"));
           std::string repack("REPACK ");
           repack = repack + shpLayerName;

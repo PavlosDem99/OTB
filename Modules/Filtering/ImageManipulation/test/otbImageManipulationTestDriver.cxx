@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -68,7 +68,6 @@ void RegisterTests()
   REGISTER_TEST(otbTwoNRIBandsImageToNComplexBandsImage);
   REGISTER_TEST(otbChangeNoDataValueFilter);
   REGISTER_TEST(otbImageToNoDataMaskFilter);
-  REGISTER_TEST(otbChangeInformationImageFilter);
   REGISTER_TEST(otbGridResampleImageFilter);
   REGISTER_TEST(otbMaskedIteratorDecoratorNominal);
   REGISTER_TEST(otbMaskedIteratorDecoratorDegenerate);

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -25,7 +25,7 @@ import argparse
 import re
 
 import otbApplication
-from otbApplication import ParameterType_Bool, ParameterType_Int, ParameterType_Radius, ParameterType_RAM, ParameterType_Float, ParameterType_String, ParameterType_StringList, ParameterType_InputFilename, ParameterType_OutputFilename, ParameterType_InputImage, ParameterType_OutputImage, ParameterType_InputVectorData, ParameterType_OutputVectorData, ParameterType_Directory, ParameterType_Choice, ParameterType_InputImageList, ParameterType_InputVectorDataList, ParameterType_InputFilenameList, ParameterType_ListView, ParameterType_Group
+from otbApplication import ParameterType_Bool, ParameterType_Int, ParameterType_Radius, ParameterType_RAM, ParameterType_Float, ParameterType_String, ParameterType_StringList, ParameterType_InputFilename, ParameterType_OutputFilename, ParameterType_InputImage, ParameterType_OutputImage, ParameterType_InputVectorData, ParameterType_OutputVectorData, ParameterType_Directory, ParameterType_Choice, ParameterType_InputImageList, ParameterType_InputVectorDataList, ParameterType_InputFilenameList, ParameterType_ListView, ParameterType_Band, ParameterType_Field, ParameterType_Group
 
 from otb_warnings import application_documentation_warnings
 
@@ -82,11 +82,12 @@ def GetApplicationExamplePythonSnippet(app,idx,expand = False, inputpath="",outp
         value = app.GetExampleParameterValue(idx,i)
         paramtype = app.GetParameterType(param)
         paramrole = app.GetParameterRole(param)
-        if paramtype == ParameterType_ListView:
+        if paramtype == ParameterType_ListView or paramtype == ParameterType_Band or paramtype == ParameterType_Field:
             if app.GetListViewSingleSelectionMode(param):
                 output += "\t" + appname + ".SetParameterString("+EncloseString(param)+", "+EncloseString(value)+")"
             else:
-                output += "\t" + appname + ".SetParameterStringList("+EncloseString(param)+", "+EncloseString(value)+")"
+                values = value.split()
+                output += "\t" + appname + ".SetParameterStringList("+EncloseString(param)+", "+ str(values) +")"
         if paramtype == ParameterType_Group:
             pass
         if paramtype ==  ParameterType_Choice:
@@ -182,8 +183,8 @@ def rst_parameter_value(app, key):
 
     type = app.GetParameterType(key)
 
-    # ListView is a special case depending on its mode
-    if type == ParameterType_ListView:
+    # ListView/Band/Field is a special case depending on its mode
+    if type == ParameterType_ListView or type == ParameterType_Band or type == ParameterType_Field:
         if app.GetListViewSingleSelectionMode(key):
             return "string"
         else:

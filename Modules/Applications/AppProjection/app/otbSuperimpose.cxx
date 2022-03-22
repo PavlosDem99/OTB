@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -156,7 +156,8 @@ private:
   void DoUpdateParameters() override
   {
     if (!HasUserValue("mode") && HasValue("inr") && HasValue("inm") &&
-        otb::PleiadesPToXSAffineTransformCalculator::CanCompute(GetParameterImage("inr"), GetParameterImage("inm")))
+        otb::PleiadesPToXSAffineTransformCalculator::CanCompute(GetParameterImage("inr")->GetImageMetadata(), 
+                                                                GetParameterImage("inm")->GetImageMetadata()))
     {
       otbAppLogWARNING("Forcing PHR mode with PHR data. You need to add \"-mode default\" to force the default mode with PHR images.");
       SetParameterString("mode", "phr");
@@ -242,11 +243,11 @@ private:
       }
       m_Resampler->SetDisplacementFieldSpacing(defSpacing);
 
-      // Setup transform through projRef and Keywordlist
-      m_Resampler->SetInputKeywordList(movingImage->GetImageKeywordlist());
+      // Setup transform through projRef and ImageMetadata
+      m_Resampler->SetInputImageMetadata(&(movingImage->GetImageMetadata()));
       m_Resampler->SetInputProjectionRef(movingImage->GetProjectionRef());
 
-      m_Resampler->SetOutputKeywordList(refImage->GetImageKeywordlist());
+      m_Resampler->SetOutputImageMetadata(&(refImage->GetImageMetadata()));
       m_Resampler->SetOutputProjectionRef(refImage->GetProjectionRef());
 
       m_Resampler->SetInput(movingImage);
@@ -266,7 +267,8 @@ private:
       otbAppLogINFO("Using the PHR mode");
 
       otb::PleiadesPToXSAffineTransformCalculator::TransformType::OffsetType offset =
-          otb::PleiadesPToXSAffineTransformCalculator::ComputeOffset(GetParameterImage("inr"), GetParameterImage("inm"));
+          otb::PleiadesPToXSAffineTransformCalculator::ComputeOffset(GetParameterImage("inr")->GetImageMetadata(), 
+                                                                     GetParameterImage("inm")->GetImageMetadata());
 
       m_BasicResampler->SetInput(movingImage);
       origin += offset;

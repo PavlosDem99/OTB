@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -58,7 +58,7 @@ int otbVectorDataProjectionFilterFromMapToSensor(int argc, char* argv[])
 
   vectorDataProjection->SetInput(reader->GetOutput());
 
-  vectorDataProjection->SetOutputKeywordList(imageReader->GetOutput()->GetImageKeywordlist());
+  vectorDataProjection->SetOutputImageMetadata(&imageReader->GetOutput()->GetImageMetadata());
   vectorDataProjection->SetOutputOrigin(imageReader->GetOutput()->GetOrigin());
   vectorDataProjection->SetOutputSpacing(imageReader->GetOutput()->GetSignedSpacing());
 

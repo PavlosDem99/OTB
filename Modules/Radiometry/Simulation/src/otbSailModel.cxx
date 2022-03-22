@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -22,7 +22,6 @@
 
 #include "otbSailModel.h"
 #include "otb_boost_expint_header.h"
-#include <boost/shared_ptr.hpp>
 #include "otbMath.h"
 
 // TODO check EPSILON matlab

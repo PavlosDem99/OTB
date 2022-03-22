@@ -43,7 +43,9 @@ Table of Contents
     :caption: Get Started
 
     Installation
+    Supported_Sensors
     Monteverdi
+    ReleaseNote8
 
 .. toctree::
     :maxdepth: 1
@@ -78,7 +80,6 @@ Table of Contents
     C++/Tutorial.rst
     C++/UserGuide.rst
     C++/Examples.rst
-
     C++/DeveloperGuide.rst
 
 .. toctree::
@@ -88,5 +89,6 @@ Table of Contents
     EnvironmentVariables
     ExtendedFilenames
     CompilingOTBFromSource
+    RemoteModules
     FAQ
     Contributors

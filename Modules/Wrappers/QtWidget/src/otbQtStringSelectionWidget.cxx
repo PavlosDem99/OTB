@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -95,7 +95,7 @@ void QtStringSelectionWidget::DoCreateWidget()
 void QtStringSelectionWidget::OnEditionFinished()
 {
   // used to propagate m_Input (QLineEdit type) editingFinished signal
-  emit InternalQLineEditEditionFinished();
+  Q_EMIT InternalQLineEditEditionFinished();
 }
 }
 }

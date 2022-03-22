@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -36,7 +36,6 @@ GlROIActor::GlROIActor()
   : m_UL(),
     m_LR(),
     m_Wkt(),
-    m_Kwl(),
     m_Color(),
     m_Alpha(1.0),
     m_CurrentAlpha(1.0),
@@ -59,6 +58,8 @@ GlROIActor::GlROIActor()
   m_VpUR.Fill( 0 );
   m_VpLL.Fill( 0 );
   m_VpLR.Fill( 0 );
+
+  m_Imd = nullptr;
 }
 
 GlROIActor::~GlROIActor()
@@ -86,10 +87,14 @@ GlROIActor
   m_LR = p;
 }
 
-
-void GlROIActor::SetKwl(const ImageKeywordlistType & kwl)
+void GlROIActor::SetImd(const ImageMetadataType *imd)
 {
-  m_Kwl = kwl;
+  m_Imd = imd;
+}
+
+const GlROIActor::ImageMetadataType* GlROIActor::GetImd() const
+{
+  return m_Imd;
 }
 
 void GlROIActor::GetExtent(double & ulx, double & uly, double & lrx, double & lry) const
@@ -251,14 +256,14 @@ void GlROIActor::UpdateTransforms()
       m_ViewportToImageTransform = RSTransformType::New();
 
       m_ViewportToImageTransform->SetInputProjectionRef( settings->GetWkt() );
-      m_ViewportToImageTransform->SetInputKeywordList( settings->GetKeywordList() );
+      m_ViewportToImageTransform->SetInputImageMetadata( settings->GetImageMetadata() );
       m_ViewportToImageTransform->SetOutputProjectionRef( m_Wkt );
-      m_ViewportToImageTransform->SetOutputKeywordList( m_Kwl );
+      m_ViewportToImageTransform->SetOutputImageMetadata( m_Imd );
 
       m_ImageToViewportTransform->SetInputProjectionRef( m_Wkt );
-      m_ImageToViewportTransform->SetInputKeywordList( m_Kwl );
+      m_ImageToViewportTransform->SetInputImageMetadata( m_Imd );
       m_ImageToViewportTransform->SetOutputProjectionRef( settings->GetWkt() );
-      m_ImageToViewportTransform->SetOutputKeywordList( settings->GetKeywordList() );
+      m_ImageToViewportTransform->SetOutputImageMetadata( settings->GetImageMetadata() );
 
       m_ViewportToImageTransform->InstantiateTransform();
       m_ImageToViewportTransform->InstantiateTransform();

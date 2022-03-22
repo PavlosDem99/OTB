@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -43,7 +43,7 @@ int otbSpectralSensitivityReaderTest(int itkNotUsed(argc), char* argv[])
   SpectralSensitivityReader::Pointer spectSen = SpectralSensitivityReader::New();
 
   spectSen->SetDataPath(dataPath);
-  spectSen->SetImage(reader->GetOutput());
+  spectSen->SetImageMetadata(&reader->GetOutput()->GetImageMetadata());
 
   spectSen->Update();
 
@@ -71,7 +71,7 @@ int otbSpectralSensitivityReaderGenericTest(int itkNotUsed(argc), char* argv[])
 
   spectSen->SetFileName(sensitivityFileName);
   //   std::cout << "test : " << "filemane " << spectSen->GetFileName() <<std::endl;
-  spectSen->SetImage(reader->GetOutput());
+  spectSen->SetImageMetadata(&reader->GetOutput()->GetImageMetadata());
 
   spectSen->Update();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -35,9 +35,9 @@
 #include "OTBImageIOExport.h"
 
 #include "otbDefaultConvertPixelTraits.h"
-#include "otbImageKeywordlist.h"
 #include "otbExtendedFilenameToReaderOptions.h"
 #include "otbImageFileReaderException.h"
+#include "otbMetadataSupplierInterface.h"
 #include <string>
 
 namespace otb
@@ -129,6 +129,9 @@ public:
    * Returns: overview info, empty if none.*/
   std::vector<std::string> GetOverviewsInfo();
 
+  // Retrieve the real source file name if derived dataset */
+  static std::string GetDerivedDatasetSourceFileName(const std::string& filename);
+
 protected:
   ImageFileReader();
   ~ImageFileReader() override;
@@ -148,9 +151,6 @@ private:
     */
   bool GetGdalReadImageFileName(const std::string& filename, std::string& GdalFileName);
 
-  // Retrieve the real source file name if derived dataset */
-  std::string GetDerivedDatasetSourceFileName(const std::string& filename) const;
-
   ImageFileReader(const Self&) = delete;
   void operator=(const Self&) = delete;
 
@@ -169,8 +169,6 @@ private:
   FNameHelperType::Pointer m_FilenameHelper;
 
   unsigned int m_AdditionalNumber;
-
-  bool m_KeywordListUpToDate;
 
   /** Mapping between origin components and output components (before any
    * conversion) */

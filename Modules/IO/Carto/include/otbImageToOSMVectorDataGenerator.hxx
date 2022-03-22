@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -84,7 +84,7 @@ void ImageToOSMVectorDataGenerator<TImage>::EstimateImageExtent()
   // Local generic RS Transform to project the 4 corners to WGS84
   typedef otb::GenericRSTransform<> TransformType;
   typename TransformType::Pointer   transform = TransformType::New();
-  transform->SetInputKeywordList(input->GetImageKeywordlist());
+  transform->SetInputImageMetadata(&(input->GetImageMetadata()));
   transform->SetInputProjectionRef(input->GetProjectionRef());
   transform->SetOutputProjectionRef(otb::SpatialReference::FromWGS84().ToWkt());
   transform->InstantiateTransform();

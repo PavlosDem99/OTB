@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -25,8 +25,6 @@
 #include "itkCastImageFilter.h"
 #include "otbDEMHandler.h"
 
-#include "otbImageKeywordlist.h"
-
 namespace otb
 {
 
@@ -34,7 +32,7 @@ namespace otb
  * \brief This filter estimates a RPC sensor models from GCPs.
  *
  * This filters estimates an RPC sensor model from a list of user
- * defined GCPs. Internally, it uses an ossimRpcSolver, which performs
+ * defined GCPs. Internally, it uses an RpcSolver, which performs
  * the estimation using the well known least-square method.
  *
  * The UseImageGCPs flag allows importing GCPs from the image
@@ -98,7 +96,6 @@ public:
 
   /** DEM typedef */
   typedef otb::DEMHandler                  DEMHandlerType;
-  typedef typename DEMHandlerType::Pointer DEMHandlerPointerType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -109,14 +106,14 @@ public:
   /** Extract dimension from input and output image. */
   itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
-  /** Set/Get/toogle the UseImageGCPs flag */
+  /** Set/Get/toggle the UseImageGCPs flag */
   //  itkSetMacro(UseImageGCPs, bool);
   // itkGetMacro(UseImageGCPs, bool);
   //  itkBooleanMacro(UseImageGCPs);
   void SetUseImageGCPs(bool use);
   void LoadImageGCPs();
 
-  /** Set/Get/toogle the UseDEM flag */
+  /** Set/Get/toggle the UseDEM flag */
   itkSetMacro(UseDEM, bool);
   itkGetMacro(UseDEM, bool);
   itkBooleanMacro(UseDEM);
@@ -124,10 +121,6 @@ public:
   /** Set/Get the mean elevation */
   itkSetMacro(MeanElevation, double);
   itkGetConstReferenceMacro(MeanElevation, double);
-
-  /** Set/Get the DEMHandler */
-  itkSetObjectMacro(DEMHandler, DEMHandlerType);
-  itkGetObjectMacro(DEMHandler, DEMHandlerType);
 
   /** Get the residual ground error */
   itkGetConstReferenceMacro(RMSGroundError, double);
@@ -144,9 +137,6 @@ public:
 
   /** Set the GCP container */
   void SetGCPsContainer(const GCPsContainerType& container);
-
-  /** Get Keywordlist */
-  itkGetConstReferenceMacro(Keywordlist, ImageKeywordlist);
 
   /** Add a GCP to the GCPContainer. This version of the AddGCP method
    * accepts a 3D ground point and does not use DEM or MeanElevation
@@ -207,14 +197,11 @@ private:
    * over the image is used instead */
   double m_MeanElevation;
 
-  /** The DEMHandler */
-  DEMHandlerPointerType m_DEMHandler;
-
   /** Container of GCPs */
   GCPsContainerType m_GCPsContainer;
 
-  /** Keywordlist */
-  ImageKeywordlist m_Keywordlist;
+  /** ImageMetadata */
+  ImageMetadata m_ImageMetadata;
 
   /** Flag to see if model is up-to-date */
   mutable bool m_ModelUpToDate;

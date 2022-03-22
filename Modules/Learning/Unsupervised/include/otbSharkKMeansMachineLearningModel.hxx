@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -21,12 +21,18 @@
 #define otbSharkKMeansMachineLearningModel_hxx
 
 #include <fstream>
-#include "boost/make_shared.hpp"
+#include <utility>
+
 #include "itkMacro.h"
 #include "otbSharkKMeansMachineLearningModel.h"
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
+
+#if (defined (__GNUC__) && (__GNUC__ >= 9)) || (defined (__clang__) && (__clang_major__ >= 10))
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#endif
+
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
@@ -52,7 +58,7 @@ SharkKMeansMachineLearningModel<TInputValue, TOutputValue>::SharkKMeansMachineLe
 {
   // Default set HardClusteringModel
   this->m_ConfidenceIndex = true;
-  m_ClusteringModel       = boost::make_shared<ClusteringModelType>(&m_Centroids);
+  m_ClusteringModel       = std::make_shared<ClusteringModelType>(&m_Centroids);
 }
 
 
@@ -72,7 +78,7 @@ void SharkKMeansMachineLearningModel<TInputValue, TOutputValue>::Train()
 
   // Use a Hard Clustering Model for classification
   shark::kMeans(data, m_K, m_Centroids, m_MaximumNumberOfIterations);
-  m_ClusteringModel = boost::make_shared<ClusteringModelType>(&m_Centroids);
+  m_ClusteringModel = std::make_shared<ClusteringModelType>(&m_Centroids);
 }
 
 template <class TInputValue, class TOutputValue>

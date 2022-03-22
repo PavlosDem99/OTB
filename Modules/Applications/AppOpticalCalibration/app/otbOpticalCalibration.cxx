@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -39,7 +39,6 @@
 #include <sstream>
 #include <vector>
 #include <itkVariableLengthVector.h>
-
 
 namespace otb
 {
@@ -141,7 +140,7 @@ private:
         "- solar illuminations, one value for each band (passed by a file).\n\n"
         "For the conversion from DN (for Digital Numbers) to spectral radiance (or 'TOA radiance') L, the following formula is used:\n\n"
 
-        "(1)\tL(b) = DN(b)/gain(b)+bias(b)\t(in W/m2/steradians/micrometers)\twith b being a band ID.\n\n"
+        "**(1)\tL(b) = DN(b)/gain(b)+bias(b)\t(in W/m2/steradians/micrometers)**\twith b being a band ID.\n\n"
 
         "These values are provided by the user thanks to a simple txt file with two lines, one for the gains and one for the biases.\n"
         "Each value must be separated with colons (:), with eventual spaces. Blank lines are not allowed. If a line begins with the '#' symbol, then it is "
@@ -151,7 +150,7 @@ private:
 
         "In order to convert TOA radiance to TOA reflectance, the following formula is used:\n\n"
 
-        "(2)\tR(b) = (pi*L(b)*d*d) / (ESUN(b)*cos(θ))\t(no dimension)\twhere: \n\n"
+        "**(2)\tR(b) = (pi*L(b)*d*d) / (ESUN(b)*cos(θ))\t(no dimension)**\twhere: \n\n"
 
         "- L(b) is the spectral radiance for band b \n"
         "- pi is the famous mathematical constant (3.14159...) \n"
@@ -165,20 +164,22 @@ private:
         "These values are provided by the user thanks to a txt file following the same convention as before.\n"
         "Instead of providing the date of acquisition, the user can also provide a flux normalization coefficient or a solar distance (in AU) 'fn'. "
         "The formula used instead will be the following : \n\n"
-        "(3) \tR(b) = (pi*L(b)) / (ESUN(b)*fn*fn*cos(θ)) \n\n"
+        "**(3) \tR(b) = (pi*L(b)) / (ESUN(b)*fn*fn*cos(θ))** \n\n"
         "Whatever the formula used (2 or 3), the user should pay attention to the interpretation of the parameters he will provide to the application, "
         "by taking into account the original formula that the metadata files assumes.\n\n"
 
         "Below, we give two examples of txt files containing information about gains/biases and solar illuminations :\n\n"
         "- gainbias.txt :\n\n"
-        "# Gain values for each band. Each value must be separated with colons (:), with eventual spaces. Blank lines not allowed.\n"
-        "10.4416 : 9.529 : 8.5175 : 14.0063\n"
-        "# Bias values for each band.\n"
-        "0.0 : 0.0 : 0.0 : 0.0\n\n"
+        "| # Gain values for each band. Each value must be separated with colons (:), with eventual spaces.\n"
+        "| # Blank lines not allowed.\n"
+        "| 10.4416 : 9.529 : 8.5175 : 14.0063\n"
+        "| # Bias values for each band.\n"
+        "| 0.0 : 0.0 : 0.0 : 0.0\n\n"
+        "Important Note : For Pleiade image calibration, the band order is important, it should be given as : Red, Green, Blue, NIR (B2,B1,B0,B3).\n\n"
         "- solarillumination.txt : \n\n"
-        "# Solar illumination values in watt/m2/micron ('micron' means actually 'for each band').\n"
-        "# Each value must be separated with colons (:), with eventual spaces. Blank lines not allowed.\n"
-        "1540.494123 : 1826.087443 : 1982.671954 : 1094.747446\n\n"
+        "| # Solar illumination values in watt/m2/micron ('micron' means actually 'for each band').\n"
+        "| # Each value must be separated with colons (:), with eventual spaces. Blank lines not allowed.\n"
+        "| 1540.494123 : 1826.087443 : 1982.671954 : 1094.747446\n\n"
 
         "Finally, the 'Logs' tab provides useful messages that can help the user in knowing the process different status.");
 
@@ -284,8 +285,10 @@ private:
     SetDefaultParameterFloat("acqui.view.azim", 0.0);
 
     // Gain & bias
-    AddParameter(ParameterType_InputFilename, "acqui.gainbias", "Gains or biases");
-    SetParameterDescription("acqui.gainbias", "Gains or biases");
+    AddParameter(ParameterType_InputFilename, "acqui.gainbias", "Gains and biases");
+    SetParameterDescription("acqui.gainbias", "A text file containing user defined gains and biases\n\n"
+                                              "Note: for Pleiades products, if the user does not give this parameter, the gain and bias values are read by default in the DIMAP.\n"
+                                              "If they are not found in the DIMAP, they are taken from hard-coded tables, given by the calibration team.\n");
     MandatoryOff("acqui.gainbias");
     // Solar illuminations
     AddParameter(ParameterType_InputFilename, "acqui.solarilluminations", "Solar illuminations");
@@ -394,41 +397,32 @@ private:
 
         // Check if valid metadata information are available to compute ImageToRadiance and RadianceToReflectance
         FloatVectorImageType::Pointer          inImage                 = GetParameterFloatVectorImage("in");
-        itk::MetaDataDictionary                dict                    = inImage->GetMetaDataDictionary();
-        OpticalImageMetadataInterface::Pointer lImageMetadataInterface = OpticalImageMetadataInterfaceFactory::CreateIMI(dict);
+        
+        const auto & metadata = inImage->GetImageMetadata();
 
-        std::string IMIName(lImageMetadataInterface->GetNameOfClass()), IMIOptDfltName("OpticalDefaultImageMetadataInterface");
-        if ((IMIName != IMIOptDfltName))
+        if ((otb::HasOpticalSensorMetadata(metadata)))
         {
-          ossOutput << "Sensor detected: " << lImageMetadataInterface->GetSensorID() << std::endl;
+          ossOutput << "Sensor detected: " << metadata[MDStr::SensorID]<< std::endl;
 
           itk::VariableLengthVector<double> vlvector;
           std::stringstream                 ss;
 
           ossOutput << "Parameters extract from input image: " << std::endl
-                    << "\tAcquisition Day: " << lImageMetadataInterface->GetDay() << std::endl
-                    << "\tAcquisition Month: " << lImageMetadataInterface->GetMonth() << std::endl
-                    << "\tAcquisition Year: " << lImageMetadataInterface->GetYear() << std::endl
-                    << "\tAcquisition Sun Elevation Angle: " << lImageMetadataInterface->GetSunElevation() << std::endl
-                    << "\tAcquisition Sun Azimuth Angle: " << lImageMetadataInterface->GetSunAzimuth() << std::endl
-                    << "\tAcquisition Viewing Elevation Angle: " << lImageMetadataInterface->GetSatElevation() << std::endl
-                    << "\tAcquisition Viewing Azimuth Angle: " << lImageMetadataInterface->GetSatAzimuth() << std::endl;
+                    << "\tAcquisition Day: " << metadata[MDTime::AcquisitionDate].GetDay() << std::endl
+                    << "\tAcquisition Month: " << metadata[MDTime::AcquisitionDate].GetMonth() << std::endl
+                    << "\tAcquisition Year: " << metadata[MDTime::AcquisitionDate].GetYear() << std::endl
+                    << "\tAcquisition Sun Elevation Angle: " << metadata[MDNum::SunElevation] << std::endl
+                    << "\tAcquisition Sun Azimuth Angle: " << metadata[MDNum::SunAzimuth] << std::endl
+                    << "\tAcquisition Viewing Elevation Angle: " << metadata[MDNum::SatElevation] << std::endl
+                    << "\tAcquisition Viewing Azimuth Angle: " << metadata[MDNum::SatAzimuth] << std::endl;
 
-          vlvector = lImageMetadataInterface->GetPhysicalGain();
-          ossOutput << "\tAcquisition gain (per band): ";
-          for (unsigned int k = 0; k < vlvector.Size(); k++)
-            ossOutput << vlvector[k] << " ";
-          ossOutput << std::endl;
-
-          vlvector = lImageMetadataInterface->GetPhysicalBias();
-          ossOutput << "\tAcquisition bias (per band): ";
-          for (unsigned int k = 0; k < vlvector.Size(); k++)
-            ossOutput << vlvector[k] << " ";
-          ossOutput << std::endl;
+          // The Gain and Bias are read in the GetImageMetadata, we will display in DoExecute what gain and bias the user finally chose.
+          // For now we have gain and bias values from dimap if available, else from hard-coded tables in MTD, so we can disable the parameter and use those values as default
+          // The user is able to enable it by giving a txt file containing its own values (-acqui.gainbias PathToTxtFile)
           DisableParameter("acqui.gainbias");
           MandatoryOff("acqui.gainbias");
 
-          vlvector = lImageMetadataInterface->GetSolarIrradiance();
+          vlvector = metadata.GetAsVector(MDNum::SolarIrradiance);
           ossOutput << "\tSolar Irradiance (per band): ";
           for (unsigned int k = 0; k < vlvector.Size(); k++)
             ossOutput << vlvector[k] << " ";
@@ -440,21 +434,21 @@ private:
             ossOutput << "Acquisition Minute already set by user: no overload" << std::endl;
           else
           {
-            SetParameterInt("acqui.minute", lImageMetadataInterface->GetMinute());
+            SetParameterInt("acqui.minute", metadata[MDTime::AcquisitionDate].GetMinute());
           }
 
           if (HasUserValue("acqui.hour"))
             ossOutput << "Acquisition Hour already set by user: no overload" << std::endl;
           else
           {
-            SetParameterInt("acqui.hour", lImageMetadataInterface->GetHour());
+            SetParameterInt("acqui.hour", metadata[MDTime::AcquisitionDate].GetHour());
           }
 
           if (HasUserValue("acqui.day"))
             ossOutput << "Acquisition Day already set by user: no overload" << std::endl;
           else
           {
-            SetParameterInt("acqui.day", lImageMetadataInterface->GetDay());
+            SetParameterInt("acqui.day", metadata[MDTime::AcquisitionDate].GetDay());
             if (IsParameterEnabled("acqui.fluxnormcoeff") || IsParameterEnabled("acqui.solardistance"))
               DisableParameter("acqui.day");
           }
@@ -463,7 +457,7 @@ private:
             ossOutput << "Acquisition Month already set by user: no overload" << std::endl;
           else
           {
-            SetParameterInt("acqui.month", lImageMetadataInterface->GetMonth());
+            SetParameterInt("acqui.month", metadata[MDTime::AcquisitionDate].GetMonth());
             if (IsParameterEnabled("acqui.fluxnormcoeff") || IsParameterEnabled("acqui.solardistance"))
               DisableParameter("acqui.month");
           }
@@ -472,40 +466,40 @@ private:
             ossOutput << "Acquisition Year already set by user: no overload" << std::endl;
           else
           {
-            SetParameterInt("acqui.year", lImageMetadataInterface->GetYear());
+            SetParameterInt("acqui.year", metadata[MDTime::AcquisitionDate].GetYear());
           }
 
           if (HasUserValue("acqui.sun.elev"))
             ossOutput << "Acquisition Sun Elevation Angle already set by user: no overload" << std::endl;
           else
-            SetParameterFloat("acqui.sun.elev", lImageMetadataInterface->GetSunElevation());
+            SetParameterFloat("acqui.sun.elev", metadata[MDNum::SunElevation]);
 
           if (HasUserValue("acqui.sun.azim"))
             ossOutput << "Acquisition Sun Azimuth Angle already set by user: no overload" << std::endl;
           else
-            SetParameterFloat("acqui.sun.azim", lImageMetadataInterface->GetSunAzimuth());
+            SetParameterFloat("acqui.sun.azim", metadata[MDNum::SunAzimuth]);
 
           if (HasUserValue("acqui.view.elev"))
             ossOutput << "Acquisition Viewing Elevation Angle already set by user: no overload" << std::endl;
           else
-            SetParameterFloat("acqui.view.elev", lImageMetadataInterface->GetSatElevation());
+            SetParameterFloat("acqui.view.elev", metadata[MDNum::SatElevation]);
 
           if (HasUserValue("acqui.view.azim"))
             ossOutput << "Acquisition Viewing Azimuth Angle already set by user: no overload" << std::endl;
           else
-            SetParameterFloat("acqui.view.azim", lImageMetadataInterface->GetSatAzimuth());
+            SetParameterFloat("acqui.view.azim", metadata[MDNum::SatAzimuth]);
 
           // Set default value so that they are stored somewhere even if
           // they are overloaded by user values
-          SetDefaultParameterInt("acqui.minute", lImageMetadataInterface->GetMinute());
-          SetDefaultParameterInt("acqui.hour", lImageMetadataInterface->GetHour());
-          SetDefaultParameterInt("acqui.day", lImageMetadataInterface->GetDay());
-          SetDefaultParameterInt("acqui.month", lImageMetadataInterface->GetMonth());
-          SetDefaultParameterInt("acqui.year", lImageMetadataInterface->GetYear());
-          SetDefaultParameterFloat("acqui.sun.elev", lImageMetadataInterface->GetSunElevation());
-          SetDefaultParameterFloat("acqui.sun.azim", lImageMetadataInterface->GetSunAzimuth());
-          SetDefaultParameterFloat("acqui.view.elev", lImageMetadataInterface->GetSatElevation());
-          SetDefaultParameterFloat("acqui.view.azim", lImageMetadataInterface->GetSatAzimuth());
+          SetDefaultParameterInt("acqui.minute", metadata[MDTime::AcquisitionDate].GetMinute());
+          SetDefaultParameterInt("acqui.hour", metadata[MDTime::AcquisitionDate].GetHour());
+          SetDefaultParameterInt("acqui.day", metadata[MDTime::AcquisitionDate].GetDay());
+          SetDefaultParameterInt("acqui.month", metadata[MDTime::AcquisitionDate].GetMonth());
+          SetDefaultParameterInt("acqui.year", metadata[MDTime::AcquisitionDate].GetYear());
+          SetDefaultParameterFloat("acqui.sun.elev", metadata[MDNum::SunElevation]);
+          SetDefaultParameterFloat("acqui.sun.azim", metadata[MDNum::SunAzimuth]);
+          SetDefaultParameterFloat("acqui.view.elev", metadata[MDNum::SatElevation]);
+          SetDefaultParameterFloat("acqui.view.azim", metadata[MDNum::SatAzimuth]);
         }
         else
         {
@@ -622,11 +616,8 @@ private:
 
     FloatVectorImageType::Pointer inImage = GetParameterFloatVectorImage("in");
 
-    // Prepare a metadata interface on the input image.
-    itk::MetaDataDictionary                dict                    = inImage->GetMetaDataDictionary();
-    OpticalImageMetadataInterface::Pointer lImageMetadataInterface = OpticalImageMetadataInterfaceFactory::CreateIMI(dict);
-    std::string                            IMIName(lImageMetadataInterface->GetNameOfClass());
-    std::string                            IMIOptDfltName("OpticalDefaultImageMetadataInterface");
+    const auto & metadata = inImage->GetImageMetadata();
+    auto hasOpticalSensorMetadata = HasOpticalSensorMetadata(metadata);
 
     // Set (Date and Day) OR FluxNormalizationCoef to corresponding filters OR solardistance
     if (IsParameterEnabled("acqui.fluxnormcoeff"))
@@ -692,20 +683,20 @@ private:
 
             switch (numLine)
             {
-            case 1:
-              m_ImageToRadianceFilter->SetAlpha(vlvector);
-              m_RadianceToImageFilter->SetAlpha(vlvector);
-              GetLogger()->Info("Trying to get gains/biases information... OK (1/2)\n");
+              case 1:
+                m_ImageToRadianceFilter->SetAlpha(vlvector);
+                m_RadianceToImageFilter->SetAlpha(vlvector);
+                otbAppLogINFO("Using Acquisition gain from the user file (per band): " << vlvector);
               break;
 
-            case 2:
-              m_ImageToRadianceFilter->SetBeta(vlvector);
-              m_RadianceToImageFilter->SetBeta(vlvector);
-              GetLogger()->Info("Trying to get gains/biases information... OK (2/2)\n");
+              case 2:
+                m_ImageToRadianceFilter->SetBeta(vlvector);
+                m_RadianceToImageFilter->SetBeta(vlvector);
+                otbAppLogINFO("Using Acquisition biases from the user file (per band): " << vlvector);
               break;
 
-            default:
-              itkExceptionMacro(<< "File : " << filename << " contains wrong number of lines (needs two, one for gains and one for biases)");
+              default:
+                itkExceptionMacro(<< "File : " << filename << " contains wrong number of lines (needs two, one for gains and one for biases)");
             }
           }
         }
@@ -716,14 +707,16 @@ private:
     }
     else
     {
-      // Try to retrieve information from image metadata
-      if (IMIName != IMIOptDfltName)
+      // Try to retrieve information from image metadata (either DIMAP if available, or hard-coded tables)
+      if (hasOpticalSensorMetadata)
       {
-        m_ImageToRadianceFilter->SetAlpha(lImageMetadataInterface->GetPhysicalGain());
-        m_RadianceToImageFilter->SetAlpha(lImageMetadataInterface->GetPhysicalGain());
+        otbAppLogINFO("Using Acquisition gain from image metadata (per band): " << metadata.GetAsVector(MDNum::PhysicalGain));
+        m_ImageToRadianceFilter->SetAlpha(metadata.GetAsVector(MDNum::PhysicalGain));
+        m_RadianceToImageFilter->SetAlpha(metadata.GetAsVector(MDNum::PhysicalGain));
 
-        m_ImageToRadianceFilter->SetBeta(lImageMetadataInterface->GetPhysicalBias());
-        m_RadianceToImageFilter->SetBeta(lImageMetadataInterface->GetPhysicalBias());
+        otbAppLogINFO("Using Acquisition bias from image metadata (per band): " <<  metadata.GetAsVector(MDNum::PhysicalBias));
+        m_ImageToRadianceFilter->SetBeta(metadata.GetAsVector(MDNum::PhysicalBias));
+        m_RadianceToImageFilter->SetBeta(metadata.GetAsVector(MDNum::PhysicalBias));
       }
       else
         itkExceptionMacro(<< "Please, provide a type of sensor supported by OTB for automatic metadata extraction! ");
@@ -775,10 +768,10 @@ private:
     else
     {
       // Try to retrieve information from image metadata
-      if (IMIName != IMIOptDfltName)
+      if (hasOpticalSensorMetadata)
       {
-        m_RadianceToReflectanceFilter->SetSolarIllumination(lImageMetadataInterface->GetSolarIrradiance());
-        m_ReflectanceToRadianceFilter->SetSolarIllumination(lImageMetadataInterface->GetSolarIrradiance());
+        m_RadianceToReflectanceFilter->SetSolarIllumination(metadata.GetAsVector(MDNum::SolarIrradiance));
+        m_ReflectanceToRadianceFilter->SetSolarIllumination(metadata.GetAsVector(MDNum::SolarIrradiance));
       }
       else
         itkExceptionMacro(<< "Please, provide a type of sensor supported by OTB for automatic metadata extraction! ");
@@ -797,7 +790,7 @@ private:
     {
     case Level_IM_TOA:
     {
-      GetLogger()->Info("Compute Top of Atmosphere reflectance\n");
+      otbAppLogINFO("Compute Top of Atmosphere reflectance\n");
 
       // Pipeline
       m_ImageToRadianceFilter->SetInput(inImage);
@@ -805,7 +798,7 @@ private:
 
       if (GetParameterInt("clamp"))
       {
-        GetLogger()->Info("Clamp values between [0, 100]\n");
+        otbAppLogINFO("Clamp values between [0, 100]\n");
       }
 
       m_RadianceToReflectanceFilter->SetUseClamp(GetParameterInt("clamp"));
@@ -815,7 +808,7 @@ private:
     break;
     case Level_TOA_IM:
     {
-      GetLogger()->Info("Convert Top of Atmosphere reflectance to image DN\n");
+      otbAppLogINFO("Convert Top of Atmosphere reflectance to image DN\n");
 
       // Pipeline
       m_ReflectanceToRadianceFilter->SetInput(inImage);
@@ -826,7 +819,7 @@ private:
     break;
     case Level_TOC:
     {
-      GetLogger()->Info("Compute Top of Canopy reflectance\n");
+      otbAppLogINFO("Compute Top of Canopy reflectance\n");
 
       // Pipeline
       m_ImageToRadianceFilter->SetInput(inImage);
@@ -867,10 +860,22 @@ private:
         else
           otbAppLogFATAL("Please, set a sensor relative spectral response file.");
       }
-      else if (IMIName != IMIOptDfltName)
+      else if (hasOpticalSensorMetadata)
       {
-        // Avoid to call GetSpectralSensitivity() multiple times
-        OpticalImageMetadataInterface::WavelengthSpectralBandVectorType spectralSensitivity = lImageMetadataInterface->GetSpectralSensitivity();
+        auto spectralSensitivity = AcquiCorrectionParametersType::InternalWavelengthSpectralBandVectorType::New();
+        for (const auto & band : metadata.Bands)
+        {
+            const auto & spectralSensitivityLUT = band[MDL1D::SpectralSensitivity];
+            const auto & axis = spectralSensitivityLUT.Axis[0];
+            auto filterFunction = FilterFunctionValues::New();
+            // LUT1D stores a double vector whereas FilterFunctionValues stores a float vector
+            std::vector<float> vec(spectralSensitivityLUT.Array.begin(), spectralSensitivityLUT.Array.end());
+            filterFunction->SetFilterFunctionValues(vec);
+            filterFunction->SetMinSpectralValue(axis.Origin);
+            filterFunction->SetMaxSpectralValue(axis.Origin + axis.Spacing * (axis.Size-1));
+            filterFunction->SetUserStep(axis.Spacing);
+            spectralSensitivity->PushBack(filterFunction);
+        }
 
         if (spectralSensitivity->Size() > 0)
           m_paramAcqui->SetWavelengthSpectralBand(spectralSensitivity);
@@ -894,7 +899,7 @@ private:
       // Aeronet file
       if (IsParameterEnabled("atmo.aeronet"))
       {
-        GetLogger()->Info("Use Aeronet file to retrieve atmospheric parameters\n");
+        otbAppLogINFO("Use Aeronet file to retrieve atmospheric parameters\n");
         m_paramAtmo->SetAeronetFileName(GetParameterString("atmo.aeronet"));
         m_paramAtmo->UpdateAeronetData(GetParameterInt("acqui.year"), GetParameterInt("acqui.month"), GetParameterInt("acqui.day"),
                                        GetParameterInt("acqui.hour"), GetParameterInt("acqui.minute"), 0.4);
@@ -918,12 +923,12 @@ private:
       AtmosphericRadiativeTerms::Pointer atmoTerms = m_ReflectanceToSurfaceReflectanceFilter->GetAtmosphericRadiativeTerms();
       oss << std::endl << std::endl << atmoTerms << std::endl;
 
-      GetLogger()->Info("Atmospheric correction parameters compute by 6S : " + oss.str());
+      otbAppLogINFO("Atmospheric correction parameters compute by 6S : " + oss.str());
 
       bool adjComputation = false;
       if (IsParameterEnabled("atmo.radius"))
       {
-        GetLogger()->Info("Compute adjacency effects\n");
+        otbAppLogINFO("Compute adjacency effects\n");
         adjComputation = true;
         // Compute adjacency effect
         m_SurfaceAdjacencyEffectCorrectionSchemeFilter = SurfaceAdjacencyEffectCorrectionSchemeFilterType::New();
@@ -947,7 +952,7 @@ private:
       }
       else
       {
-        GetLogger()->Info("Clamp values between [0, 100]\n");
+        otbAppLogINFO("Clamp values between [0, 100]\n");
 
         if (!adjComputation)
           m_ClampFilter->SetInput(m_ReflectanceToSurfaceReflectanceFilter->GetOutput());
@@ -966,7 +971,7 @@ private:
 
     if (GetParameterInt("milli"))
     {
-      GetLogger()->Info("Use milli-reflectance\n");
+      otbAppLogINFO("Use milli-reflectance\n");
       if ((GetParameterInt("level") == Level_IM_TOA) || (GetParameterInt("level") == Level_TOC))
         scale = 1000.;
       if (GetParameterInt("level") == Level_TOA_IM)

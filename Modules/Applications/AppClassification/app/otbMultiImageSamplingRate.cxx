@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -205,7 +205,7 @@ private:
     std::vector<std::string> inputs     = this->GetParameterStringList("il");
     unsigned int             nbInputs   = inputs.size();
     XMLReaderType::Pointer   statReader = XMLReaderType::New();
-    for (unsigned int i = 0; i < nbInputs; i++)
+    for (unsigned int i = 0; i < nbInputs; ++i)
     {
       m_CalculatorList->PushBack(otb::SamplingRateCalculator::New());
       statReader->SetFileName(inputs[i]);

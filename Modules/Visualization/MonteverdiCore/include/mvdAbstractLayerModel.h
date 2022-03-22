@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -90,7 +90,7 @@ OTBMonteverdiCore_EXPORT SpatialReferenceType GetSpatialReferenceType(const std:
 
 /**
  */
-OTBMonteverdiCore_EXPORT SpatialReferenceType GetSpatialReferenceType(const std::string& wkt, bool hasKwl);
+OTBMonteverdiCore_EXPORT SpatialReferenceType GetSpatialReferenceType(const std::string& wkt, bool hasSensorModel);
 
 /*****************************************************************************/
 /* CLASS DEFINITION SECTION                                                  */
@@ -143,13 +143,13 @@ public:
 
   //
   // Public SLOTS.
-public slots:
+public Q_SLOTS:
 
   /*-[ SIGNALS SECTION ]-----------------------------------------------------*/
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    */
   void VisibilityChanged(bool = true);
@@ -168,7 +168,7 @@ protected:
 
   /**
    */
-  bool HasKwl() const;
+  bool HasSensorModel() const;
 
   //
   // Protected attributes.
@@ -184,7 +184,7 @@ private:
 
   /**
    */
-  virtual bool virtual_HasKwl() const;
+  virtual bool virtual_HasSensorModel() const;
 
   /**
    */
@@ -202,7 +202,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
 };
 
 } // end namespace 'mvd'.

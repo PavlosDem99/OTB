@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -36,6 +36,8 @@
 #include "otbWrapperProxyParameter.h"
 #include "otbWrapperParameterKey.h"
 #include "otbWrapperBoolParameter.h"
+#include "otbWrapperFieldParameter.h"
+#include "otbWrapperBandParameter.h"
 
 #include "otbWrapperAddProcessToWatchEvent.h"
 #include "otbExtendedFilenameToWriterOptions.h"
@@ -467,6 +469,17 @@ template <typename T>
 T* downcast_check(Parameter* param)
 {
   T* down = dynamic_cast<T*>(param);
+  if (down == nullptr)
+  {
+    param->TypeError(ParameterTypeToString(T::New()->GetType()));
+  }
+  return down;
+}
+
+template <typename T>
+const T* const_downcast_check(const Parameter* param)
+{
+  const T* down = dynamic_cast<const T*>(param);
   if (down == nullptr)
   {
     param->TypeError(ParameterTypeToString(T::New()->GetType()));
@@ -1359,6 +1372,30 @@ void Application::SetNthParameterStringList(std::string const& key, const unsign
   param->SetNthFileName(id, str);
 }
 
+void Application::SetVectorData(std::string const& key, std::string const& vectorData )
+{
+  auto param = downcast_check<FieldParameter>(GetParameterByKey(key));
+  param->SetVectorData(vectorData);
+}
+
+void Application::SetTypeFilter(std::string const& key, FieldParameter::TypeFilterType const& typeFilter )
+{
+  auto param = downcast_check<FieldParameter>(GetParameterByKey(key));
+  param->SetTypeFilter(typeFilter);
+}
+
+const FieldParameter::TypeFilterType& Application::GetTypeFilter(std::string const& key ) const
+{
+  auto param = const_downcast_check<FieldParameter>(GetParameterByKey(key));
+  return param->GetTypeFilter();
+}
+
+void Application::SetRasterData(std::string const& key, std::string const& rasterData )
+{
+  auto param = downcast_check<BandParameter>(GetParameterByKey(key));
+  param->SetRasterData(rasterData);
+}
+
 void Application::ClearParameterInputImageList(std::string const& key)
 {
   auto param = downcast_check<InputImageListParameter>(GetParameterByKey(key));
@@ -1596,25 +1633,7 @@ unsigned int Application::GetImageNbBands(const std::string& key, unsigned int i
 
 std::string Application::GetImageProjection(const std::string& key, unsigned int idx)
 {
-  std::string                    proj;
-  const itk::MetaDataDictionary& dict = this->GetParameterImageBase(key, idx)->GetMetaDataDictionary();
-
-  if (!dict.HasKey(MetaDataKey::ProjectionRefKey))
-    return std::string("");
-
-  itk::ExposeMetaData<std::string>(dict, MetaDataKey::ProjectionRefKey, proj);
-  return proj;
-}
-
-otb::ImageKeywordlist Application::GetImageKeywordlist(const std::string& key, unsigned int idx)
-{
-  ImageKeywordlist               kwl;
-  const itk::MetaDataDictionary& dict = this->GetParameterImageBase(key, idx)->GetMetaDataDictionary();
-
-  if (dict.HasKey(MetaDataKey::OSSIMKeywordlistKey))
-    itk::ExposeMetaData<ImageKeywordlist>(dict, MetaDataKey::OSSIMKeywordlistKey, kwl);
-
-  return kwl;
+  return this->GetImageMetadata(key, idx).GetProjectedGeometry();
 }
 
 unsigned long Application::PropagateRequestedRegion(const std::string& key, ImageBaseType::RegionType region, unsigned int idx)
@@ -1644,7 +1663,26 @@ ImageBaseType::RegionType Application::GetImageRequestedRegion(const std::string
   return requested;
 }
 
-itk::MetaDataDictionary Application::GetImageMetaData(const std::string& key, unsigned int idx)
+ImageMetadata &Application::GetImageMetadata(const std::string& key, unsigned int idx)
+{
+  ImageBaseType* image = this->GetParameterImageBase(key, idx);
+  otb::ImageCommons* castedImage = dynamic_cast<otb::ImageCommons*>(image);
+  if (castedImage)
+    return castedImage->GetImageMetadata();
+  throw std::runtime_error("Cannot retrieve metadata from the image parameter " + key);
+}
+
+void Application::SetImageMetadata(const ImageMetadata & imd, const std::string& key, unsigned int idx)
+{
+  ImageBaseType* image = this->GetParameterImageBase(key, idx);
+  otb::ImageCommons* castedImage = dynamic_cast<otb::ImageCommons*>(image);
+  if (castedImage)
+    castedImage->SetImageMetadata(imd);
+  else
+    throw std::runtime_error("Cannot set metadata to the image parameter " + key);
+}
+
+itk::MetaDataDictionary Application::GetMetadataDictionary(const std::string& key, unsigned int idx)
 {
   ImageBaseType* image = this->GetParameterImageBase(key, idx);
   return image->GetMetaDataDictionary();

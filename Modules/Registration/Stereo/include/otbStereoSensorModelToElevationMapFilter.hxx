@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -146,8 +146,8 @@ void StereoSensorModelToElevationFilter<TInputImage, TOutputHeight>::GenerateInp
 
   // Build the transform to switch from the master to the slave image
   typename GenericRSTransformType::Pointer transform = GenericRSTransformType::New();
-  transform->SetInputKeywordList(masterPtr->GetImageKeywordlist());
-  transform->SetOutputKeywordList(slavePtr->GetImageKeywordlist());
+  transform->SetInputImageMetadata(&(masterPtr->GetImageMetadata()));
+  transform->SetOutputImageMetadata(&(slavePtr->GetImageMetadata()));
 
   transform->InstantiateTransform();
 
@@ -259,14 +259,14 @@ void StereoSensorModelToElevationFilter<TInputImage, TOutputHeight>::BeforeThrea
   this->GetCorrelationOutput()->FillBuffer(0.);
 
   // Initialize with average elevation
-  this->GetOutput()->FillBuffer(otb::DEMHandler::Instance()->GetDefaultHeightAboveEllipsoid());
+  this->GetOutput()->FillBuffer(otb::DEMHandler::GetInstance().GetDefaultHeightAboveEllipsoid());
 
   // Initialize with DEM elevation (not threadable because of some
   // mutex in ossim)
   OutputImageType* outputPtr = this->GetOutput();
 
   typename GenericRSTransformType::Pointer rsTransform = GenericRSTransformType::New();
-  rsTransform->SetInputKeywordList(outputPtr->GetImageKeywordlist());
+  rsTransform->SetInputImageMetadata(&(outputPtr->GetImageMetadata()));
   rsTransform->InstantiateTransform();
 
   // Fill output
@@ -280,7 +280,7 @@ void StereoSensorModelToElevationFilter<TInputImage, TOutputHeight>::BeforeThrea
 
     // Transform to geo point
     geoPoint = rsTransform->TransformPoint(outputPoint);
-    outputIt.Set(otb::DEMHandler::Instance()->GetHeightAboveEllipsoid(geoPoint));
+    outputIt.Set(otb::DEMHandler::GetInstance().GetHeightAboveEllipsoid(geoPoint));
   }
 
   const InputImageType* masterPtr = this->GetMasterInput();
@@ -288,8 +288,8 @@ void StereoSensorModelToElevationFilter<TInputImage, TOutputHeight>::BeforeThrea
 
   // Set-up the forward-inverse sensor model transform
   m_MasterToSlave = GenericRSTransform3DType::New();
-  m_MasterToSlave->SetInputKeywordList(masterPtr->GetImageKeywordlist());
-  m_MasterToSlave->SetOutputKeywordList(slavePtr->GetImageKeywordlist());
+  m_MasterToSlave->SetInputImageMetadata(&(masterPtr->GetImageMetadata()));
+  m_MasterToSlave->SetOutputImageMetadata(&(slavePtr->GetImageMetadata()));
   m_MasterToSlave->InstantiateTransform();
 }
 

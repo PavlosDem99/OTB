@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+# Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
 #
 # This file is part of Orfeo Toolbox
 #
@@ -30,6 +30,13 @@ set (otb_build_project_option
 BUILD_EXAMPLES:BOOL=ON
 BUILD_SHARED_LIBS:BOOL=ON
 BUILD_TESTING:BOOL=ON")
+
+if(WIN32)
+  set(otb_build_project_option
+"${otb_build_project_option}
+CMAKE_C_COMPILER_LAUNCHER=buildcache
+CMAKE_CXX_COMPILER_LAUNCHER=buildcache")
+endif()
 
 set (otb_qa_option
 "CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON")
@@ -70,7 +77,7 @@ if(XDK_PATH)
 set(cmake_configure_option
 "${cmake_configure_option}
 CMAKE_PREFIX_PATH=${XDK_PATH}")
-foreach(remote_module OTBTemporalGapFilling SertitObject otbGRM DiapOTBModule S1TilingSupportApplications)
+foreach(remote_module OTBTemporalGapFilling SertitObject otbGRM S1TilingSupportApplications) #DiapOTBModule
   set(cmake_configure_option
 "${cmake_configure_option}
 Module_${remote_module}:BOOL=ON")

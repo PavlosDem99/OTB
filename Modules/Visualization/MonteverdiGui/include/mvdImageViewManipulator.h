@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -44,6 +44,7 @@
 
 //
 // OTB includes (sorted by alphabetic order)
+#include "otbImageMetadata.h"
 #include "otbViewSettings.h"
 #include "OTBMonteverdiGUIExport.h"
 //
@@ -145,10 +146,7 @@ public:
 
   void SetWkt(const std::string& wkt) override;
 
-  /** Set the image keywordlist 
-    \deprecated
-   */
-  void SetKeywordList(const DefaultImageType::ImageKeywordlistType& kwl) override;
+  void SetImd(const otb::ImageMetadata* imd) override;
 
   PointType GetCenter() const override;
 
@@ -191,7 +189,7 @@ public:
 
   //
   // Public SLOTS.
-public slots:
+public Q_SLOTS:
 
   //
   // AbstractImageViewManipulator overloads.
@@ -204,7 +202,7 @@ public slots:
 
   //
   // Signals.
-signals:
+Q_SIGNALS:
   /**
    */
   void RaiseLayerRequested();
@@ -374,7 +372,7 @@ private:
 
   //
   // Slots.
-private slots:
+private Q_SLOTS:
   /**
    */
   void OnTimeout();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -42,7 +42,7 @@ void QtWidgetBoolParameter::SetValue(bool value)
     paramDown->SetValue(value);
 
     QString key(paramDown->GetKey());
-    emit    ParameterChanged(key);
+    Q_EMIT    ParameterChanged(key);
   }
 }
 

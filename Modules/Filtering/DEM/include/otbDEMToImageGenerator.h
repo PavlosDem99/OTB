@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -111,7 +111,6 @@ public:
 
   /**
    * Set/Get input & output projections.
-   * Set/Get input & output keywordlist
    * The macro are not used here cause the input and the output are
    * inversed.
    */
@@ -137,29 +136,26 @@ public:
     return m_Transform->GetInputProjectionRef();
   }
 
-  /**\name Keywords lists accessors and mutators 
-     \deprecated */
-  //@{
-  void SetInputKeywordList(const ImageKeywordlist& kwl)
+  /** Set/Get ImageMetadata*/
+  const ImageMetadata* GetInputImageMetadata() const
   {
-    m_Transform->SetOutputKeywordList(kwl);
-    this->Modified();
-  }
-  const ImageKeywordlist GetInputKeywordList()
-  {
-    return m_Transform->GetOutputKeywordList();
+    return m_Transform->GetOutputImageMetadata();
   }
 
-  /** Set/Get output Keywordlist*/
-  void SetOutputKeywordList(const ImageKeywordlist& kwl)
+  void SetInputImageMetadata(const ImageMetadata* imd)
   {
-    m_Transform->SetInputKeywordList(kwl);
+    m_Transform->SetOutputImageMetadata(imd);
     this->Modified();
   }
 
-  const ImageKeywordlist GetOutputKeywordList()
+  const ImageMetadata* GetOutputImageMetadata() const
   {
-    return m_Transform->GetInputKeywordList();
+    return m_Transform->GetInputImageMetadata();
+  }
+  void SetOutputImageMetadata(const ImageMetadata* imd)
+  {
+    m_Transform->SetInputImageMetadata(imd);
+    this->Modified();
   }
   //@}
 
@@ -172,7 +168,7 @@ public:
     // this->SetOutputStartIndex ( image->GetLargestPossibleRegion().GetIndex() );
     this->SetOutputSize(image->GetLargestPossibleRegion().GetSize());
     this->SetOutputProjectionRef(image->GetProjectionRef());
-    this->SetOutputKeywordList(image->GetImageKeywordlist());
+    this->SetOutputImageMetadata(&(image->GetImageMetadata()));
 
     InstantiateTransform();
   }
@@ -188,7 +184,6 @@ protected:
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, itk::ThreadIdType threadId) override;
   void GenerateOutputInformation() override;
 
-  DEMHandlerType::Pointer m_DEMHandler;
   PointType               m_OutputOrigin{0.0};
   SpacingType             m_OutputSpacing{0.0};
   SizeType                m_OutputSize{0,0};

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2020 Centre National d'Etudes Spatiales (CNES)
+ * Copyright (C) 2005-2022 Centre National d'Etudes Spatiales (CNES)
  *
  * This file is part of Orfeo Toolbox
  *
@@ -29,7 +29,7 @@
 namespace otb
 {
 
-class ImageKeywordlist;
+class ImageMetadata;
 
 
 /**
@@ -108,11 +108,7 @@ public:
 
   /**
    */
-  virtual bool HasKwl() const;
-
-  /**
-   */
-  virtual bool GetKwl( ImageKeywordlist & ) const;
+  virtual bool GetImd( ImageMetadata & ) const;
 
 
 protected:
